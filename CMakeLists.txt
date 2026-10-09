@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-project(GMegaUpload)
+project(GMegaUpload LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -27,13 +30,31 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
       COMMENT "Generating git version file"
       BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/git_hash.h
     )
-
 endif()
 
+# --- SDK options: set BEFORE add_subdirectory ---
+set(USE_FFMPEG     OFF CACHE BOOL "" FORCE)
+set(USE_FREEIMAGE  OFF CACHE BOOL "" FORCE)
+set(USE_MEDIAINFO  OFF CACHE BOOL "" FORCE)
+set(USE_PDFIUM     OFF CACHE BOOL "" FORCE)
+set(ENABLE_SDKLIB_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ENABLE_SDKLIB_TESTS    OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(third_party/mega-sdk)
 add_executable(gmegaupload main.cpp thread_test.cpp build_timestamp.cpp)
 
 target_link_libraries(gmegaupload PRIVATE fmt::fmt-header-only)
+
+# MSVC specifics
+if(MSVC)
+  target_compile_options(gmegaupload PRIVATE /W4 /MP)
+  target_link_options(gmegaupload PRIVATE
+    $<$<CONFIG:Release>:/OPT:REF /OPT:ICF>)
+endif()
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(gmegaupload PRIVATE third_party/mega-sdk/include)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_dependencies(gmegaupload gen-version-h)
 	add_custom_target(file_toucher ALL

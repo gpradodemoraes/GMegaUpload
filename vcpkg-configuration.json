@@ -1,14 +1,11 @@
 {
   "default-registry": {
     "kind": "git",
-    "baseline": "b1b19307e2d2ec1eefbdb7ea069de7d4bcd31f01",
+    "baseline": "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0",
     "repository": "https://github.com/microsoft/vcpkg"
   },
-  "registries": [
-    {
-      "kind": "artifact",
-      "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
-      "name": "microsoft"
-    }
+  "overlay-ports": [ "third_party/mega-sdk/cmake/vcpkg_overlay_ports" ],
+  "overlay-triplets": [
+    "triplets"
   ]
 }
