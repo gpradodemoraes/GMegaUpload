@@ -37,7 +37,9 @@
             ]
         }
     },
+	"default-features": [ "use-openssl" ],
     "dependencies": [
+		"pkgconf",
         "fmt",
         "cryptopp",
         {
