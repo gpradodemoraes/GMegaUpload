@@ -4,7 +4,7 @@
         {
             "name": "DBG_gmegaupload",
             "displayName": "Debug gmegaupload",
-            "generator": "Ninja",
+            "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
@@ -15,7 +15,7 @@
         {
             "name": "RLS_gmegaupload",
             "displayName": "Release gmegaupload",
-            "generator": "Ninja",
+            "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
