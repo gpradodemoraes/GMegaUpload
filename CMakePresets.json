@@ -2,8 +2,8 @@
     "version": 2,
     "configurePresets": [
         {
-            "name": "DBG_esqueleto",
-            "displayName": "Debug Esqueleto",
+            "name": "DBG_gmegaupload",
+            "displayName": "Debug gmegaupload",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
@@ -12,8 +12,8 @@
             }
         },
         {
-            "name": "RLS_esqueleto",
-            "displayName": "Release Esqueleto",
+            "name": "RLS_gmegaupload",
+            "displayName": "Release gmegaupload",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {

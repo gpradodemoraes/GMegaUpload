@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-project(Esqueleto)
+project(GMegaUpload)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -30,17 +30,17 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
 
 endif()
 
-add_executable(esqueleto main.cpp thread_test.cpp build_timestamp.cpp)
+add_executable(gmegaupload main.cpp thread_test.cpp build_timestamp.cpp)
 
-target_link_libraries(esqueleto PRIVATE fmt::fmt-header-only)
+target_link_libraries(gmegaupload PRIVATE fmt::fmt-header-only)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_dependencies(esqueleto gen-version-h)
+    add_dependencies(gmegaupload gen-version-h)
 	add_custom_target(file_toucher ALL
 		COMMAND ${CMAKE_COMMAND} -E touch_nocreate ${CMAKE_CURRENT_SOURCE_DIR}/build_timestamp.cpp ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 		BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/build_timestamp.cpp)
 
-	add_dependencies(esqueleto file_toucher)
+	add_dependencies(gmegaupload file_toucher)
 endif()
 
 
