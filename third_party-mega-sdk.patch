@@ -1,0 +1,58 @@
+diff --git a/CMakePresets.json b/CMakePresets.json
+index d1086514e..6edd43f7c 100644
+--- a/CMakePresets.json
++++ b/CMakePresets.json
+@@ -6,7 +6,7 @@
+             "hidden": true,
+             "binaryDir": "${sourceParentDir}/build-${sourceDirName}-${presetName}",
+             "cacheVariables": {
+-                "VCPKG_ROOT": "${sourceParentDir}/vcpkg"
++                "VCPKG_ROOT": "$env{VCPKG_ROOT}"
+             }
+         },
+         {
+@@ -110,6 +110,13 @@
+             "hidden": true,
+             "inherits": "default"
+         },
++        {
++            "name": "dev-windows",
++            "inherits": [
++                "dev",
++                "windows"
++            ]
++        },
+         {
+             "name": "dev-unix",
+             "inherits": [
+@@ -161,13 +168,6 @@
+                 "CMAKE_BUILD_TYPE": "Release"
+             }
+         },
+-        {
+-            "name": "dev-windows",
+-            "inherits": [
+-                "dev",
+-                "windows"
+-            ]
+-        },
+         {
+             "name": "dev-windows-wsupload-benchOn",
+             "inherits": [
+diff --git a/cmake/vcpkg_overlay_triplets/find_visual_studio_path.cmake b/cmake/vcpkg_overlay_triplets/find_visual_studio_path.cmake
+index a41c35635..6d9cd1e73 100644
+--- a/cmake/vcpkg_overlay_triplets/find_visual_studio_path.cmake
++++ b/cmake/vcpkg_overlay_triplets/find_visual_studio_path.cmake
+@@ -3,6 +3,12 @@ function(find_visual_studio_path)
+         "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise"
+         "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional"
+         "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community"
++        "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise"
++        "C:\\Program Files\\Microsoft Visual Studio\\18\\Professional"
++        "C:\\Program Files\\Microsoft Visual Studio\\18\\Community"
++        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise"
++        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional"
++        "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community"
+     )
+ 
+     set(VISUAL_STUDIO_FOUND FALSE)
