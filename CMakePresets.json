@@ -1,5 +1,17 @@
 {
     "version": 2,
+	"buildPresets": [
+    {
+        "name": "DBG_gmegaupload",
+        "configurePreset": "DBG_gmegaupload",
+        "configuration": "Debug"
+    },
+    {
+        "name": "RLS_gmegaupload",
+        "configurePreset": "RLS_gmegaupload",
+        "configuration": "Release"
+    }
+],
     "configurePresets": [
         {
             "name": "DBG_gmegaupload",
@@ -21,6 +33,9 @@
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
+                "VCPKG_ROOT": "$env{VCPKG_ROOT}",
+				"VCPKG_TRIPLET": "x64-windows-static-v142",
+				"VCPKG_TARGET_TRIPLET": "x64-windows-static-v142",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
         }
