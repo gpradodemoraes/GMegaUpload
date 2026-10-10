@@ -21,7 +21,6 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "VCPKG_ROOT": "$env{VCPKG_ROOT}",
-				"VCPKG_TRIPLET": "x64-windows-static-v142",
 				"VCPKG_TARGET_TRIPLET": "x64-windows-static-v142",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
@@ -34,7 +33,6 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "VCPKG_ROOT": "$env{VCPKG_ROOT}",
-				"VCPKG_TRIPLET": "x64-windows-static-v142",
 				"VCPKG_TARGET_TRIPLET": "x64-windows-static-v142",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
