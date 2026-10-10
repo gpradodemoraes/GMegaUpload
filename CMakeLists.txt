@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 project(GMegaUpload LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -44,10 +46,12 @@ set(USE_PDFIUM     OFF CACHE BOOL "" FORCE)
 set(ENABLE_SDKLIB_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ENABLE_SDKLIB_TESTS    OFF CACHE BOOL "" FORCE)
 
+
 add_subdirectory(third_party/mega-sdk)
 add_executable(gmegaupload main.cpp thread_test.cpp build_timestamp.cpp)
 
 target_link_libraries(gmegaupload PRIVATE fmt::fmt-header-only)
+target_link_libraries(gmegaupload PRIVATE SDKlib)
 
 # MSVC specifics
 if(MSVC)
@@ -56,7 +60,7 @@ if(MSVC)
     $<$<CONFIG:Release>:/OPT:REF /OPT:ICF>)
 endif()
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(gmegaupload PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(gmegaupload PRIVATE third_party/mega-sdk/include)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -68,32 +72,33 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 	add_dependencies(gmegaupload file_toucher)
 endif()
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 ############################
 # Copy to source directory
-add_custom_target(
-    copy-compile-commands ALL
-    DEPENDS
-        ${CMAKE_CURRENT_LIST_DIR}/compile_commands.json
-    )
-add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_LIST_DIR}/compile_commands.json
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_BINARY_DIR}/compile_commands.json
-        ${CMAKE_CURRENT_LIST_DIR}/compile_commands.json
-    DEPENDS
-        # Unlike "proper" targets like executables and libraries, 
-        # custom command / target pairs will not set up source
-        # file dependencies, so we need to list file explicitly here
-        generate-compile-commands
-        ${CMAKE_BINARY_DIR}/compile_commands.json
-    )
-
-# Generate the compilation commands. Necessary so cmake knows where it came
-# from and if for some reason you delete it.
-add_custom_target(generate-compile-commands
-    DEPENDS
-        ${CMAKE_BINARY_DIR}/compile_commands.json
-    )
+if(CMAKE_GENERATOR MATCHES "Ninja|Makefiles")
+	add_custom_target(
+		copy-compile-commands ALL
+		DEPENDS
+			${CMAKE_CURRENT_LIST_DIR}/compile_commands.json
+		)
+	add_custom_command(
+		OUTPUT ${CMAKE_CURRENT_LIST_DIR}/compile_commands.json
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			${CMAKE_BINARY_DIR}/compile_commands.json
+			${CMAKE_CURRENT_LIST_DIR}/compile_commands.json
+		DEPENDS
+			# Unlike "proper" targets like executables and libraries, 
+			# custom command / target pairs will not set up source
+			# file dependencies, so we need to list file explicitly here
+			generate-compile-commands
+			${CMAKE_BINARY_DIR}/compile_commands.json
+		)
+	
+	# Generate the compilation commands. Necessary so cmake knows where it came
+	# from and if for some reason you delete it.
+	add_custom_target(generate-compile-commands
+		DEPENDS
+			${CMAKE_BINARY_DIR}/compile_commands.json
+		)
+endif()
 ############################
