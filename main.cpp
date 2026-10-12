@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 	fmt::println("Git: {} {}", GIT_REV, GIT_BRANCH);
 	fmt::println("Build date: {}", build_date);
 
-	constexpr option ceasa_testing_options[] = { { "file", required_argument, nullptr, 'f' },
+	constexpr option ceasa_testing_options[] = { { "files", required_argument, nullptr, 'f' },
 												 { "directory", required_argument, nullptr, 'd' },
 												 { "sufix", required_argument, nullptr, 's' },
 												 { nullptr, 0 } };
@@ -56,10 +56,16 @@ int main(int argc, char *argv[]) {
 	std::string directory;
 	std::string sufix;
 	std::vector<std::string> files;
-	while ((opt = getopt_long(argc, argv, "f:d:s:", ceasa_testing_options, &longindex)) != -1) {
+	while ((opt = getopt_long(argc, argv, "fd:s:", ceasa_testing_options, &longindex)) != -1) {
 		switch (opt) {
 			case 'd': directory = std::string(optarg); break;
-			case 'f': files.emplace_back(optarg); break;
+			case 'f': {
+				files.emplace_back(optarg);
+				while (optind < argc && argv[optind][0] != '-') {
+					files.emplace_back(argv[optind]);
+					optind++;
+				}
+			} break;
 			case 's': sufix = std::string(optarg); break;
 			default: break;
 		}

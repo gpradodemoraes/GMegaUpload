@@ -1,0 +1,24 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+	{
+		"type": "default",
+		"project": "CMakeLists.txt",
+		"projectTarget": "gmegaupload.exe (bin\\Debug\\gmegaupload.exe)",
+		"name": "gmegaupload.exe (bin\\Debug\\gmegaupload.exe)",
+		"cwd": "",
+		"currentDir": "C:\\Users\\gprad\\AppData\\Local\\Temp\\testando",
+		"args": [
+			"--directory",
+			".",
+			"--files",
+			"guto.png",
+			"emilio2.png",
+			"carteira_de_motorista.png",
+			"--sufix",
+			"megusta"
+		]
+	}
+  ]
+}
