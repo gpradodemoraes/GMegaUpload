@@ -22,35 +22,21 @@
 
 #include <chrono>
 #include <cstdlib>
-#include <fstream>
 #include <iostream>
 #include <megaapi.h>
 #include <string>
 #include <thread>
-#include <time.h>
 #include "SimpleClientLogger.hpp"
 #include "GListener.hpp"
-#include <fmt/core.h>
+#include <fmt/base.h>
 #include "git_hash.h"
 #include "compiled_with.h"
 extern const char *build_date;
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
-constexpr auto APP_KEY = "9gETCbhB";
-constexpr auto USER_AGENT = "Simple-Client example app";
-
-static bool readYes() {
-	char c;
-	std::cin >> c; // skips whitespace, waits for Enter
-	return (c == 'y' || c == 'Y');
-}
-
-std::string displayTime(time_t t) {
-	char timebuf[32];
-	strftime(timebuf, sizeof timebuf, "%c", localtime(&t));
-	return timebuf;
-}
+constexpr const char APP_KEY[] = "9gETCbhB";
+constexpr const char USER_AGENT[] = "Simple-Client example app";
 
 int main() {
 	fmt::println("Gabriel's Mega Client");
@@ -96,25 +82,6 @@ int main() {
 	}
 
 	// Add code here to exercise MegaApi
-
-#ifdef HAVE_LIBUV
-	std::cout << "Do you want to enable the local HTTP server (y/n enter)?" << std::endl;
-	if (readYes()) {
-		megaApi->httpServerStart();
-		megaApi->httpServerSetRestrictedMode(MegaApi::HTTP_SERVER_ALLOW_ALL);
-		megaApi->httpServerEnableFileServer(true);
-		megaApi->httpServerEnableFolderServer(true);
-		std::cout << "You can browse your account now! http://127.0.0.1:4443/" << std::endl;
-	}
-#endif
-
-	std::cout << "Press y enter to exit the app..." << std::endl;
-	while (!readYes()) {
-	}
-
-#ifdef HAVE_LIBUV
-	megaApi->httpServerStop();
-#endif
 
 	megaApi->removeListener(&listener);
 	delete megaApi;
