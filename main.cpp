@@ -18,14 +18,17 @@
  * You should have received a copy of the license along with this
  * program.
  */
-#include <mega/log_level.h>
 
+#include <mega/log_level.h>
+#include "getopt.h"
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <megaapi.h>
 #include <string>
 #include <thread>
+#include <string>
+#include <vector>
 #include "SimpleClientLogger.hpp"
 #include "GListener.hpp"
 #include <fmt/base.h>
@@ -38,11 +41,31 @@ extern const char *build_date;
 constexpr const char APP_KEY[] = "9gETCbhB";
 constexpr const char USER_AGENT[] = "Simple-Client example app";
 
-int main() {
+int main(int argc, char *argv[]) {
 	fmt::println("Gabriel's Mega Client");
 	fmt::println("Compiled With: {}", COMPILED_WITH);
 	fmt::println("Git: {} {}", GIT_REV, GIT_BRANCH);
 	fmt::println("Build date: {}", build_date);
+
+	constexpr option ceasa_testing_options[] = { { "file", required_argument, nullptr, 'f' },
+												 { "directory", required_argument, nullptr, 'd' },
+												 { "sufix", required_argument, nullptr, 's' },
+												 { nullptr, 0 } };
+	int opt{};
+	int longindex{};
+	std::string directory;
+	std::string sufix;
+	std::vector<std::string> files;
+	while ((opt = getopt_long(argc, argv, "f:d:s:", ceasa_testing_options, &longindex)) != -1) {
+		switch (opt) {
+			case 'd': directory = std::string(optarg); break;
+			case 'f': files.emplace_back(optarg); break;
+			case 's': sufix = std::string(optarg); break;
+			default: break;
+		}
+	}
+
+	return 0;
 	// Route SDK logs to a file. Override the path with MEGA_LOG_FILE.
 	const char *envLogPath = std::getenv("MEGA_LOG_FILE");
 	const std::string logFilePath = (envLogPath && *envLogPath) ? envLogPath : "simple_client.log";
