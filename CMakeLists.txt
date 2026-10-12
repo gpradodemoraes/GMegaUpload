@@ -48,7 +48,7 @@ set(ENABLE_SDKLIB_TESTS    OFF CACHE BOOL "" FORCE)
 
 
 add_subdirectory(third_party/mega-sdk)
-add_executable(gmegaupload main.cpp thread_test.cpp build_timestamp.cpp)
+add_executable(gmegaupload build_timestamp.cpp SimpleClientLogger.cpp GListener.cpp main.cpp)
 
 target_link_libraries(gmegaupload PRIVATE fmt::fmt-header-only)
 target_link_libraries(gmegaupload PRIVATE SDKlib)
