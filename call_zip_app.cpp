@@ -1,14 +1,25 @@
-#include <windows.h>
-#include <shellapi.h>
-#include <stdio.h>
-#include "call_zip_app.hpp"
+#include <Windows.h>
+#include <filesystem>
+#include <fmt/format.h>
+#include <string>
+#include <utility>
 
-void call_zip_app(const std::string *zip_executable, const std::string *root_path, const std::string *sufix,
-				  const std::vector<std::string> *file_list) {
-	//. "C:\Program Files\7-Zip\7z.exe" a -v10k megustamucho_outro.7z *.png
+std::pair<int, std::string> call_zip_app(const std::string *zip_executable, const std::string *root_path,
+										 const std::string *sufix, const std::vector<std::string> *file_list) {
+	std::filesystem::path temp_path = std::filesystem::temp_directory_path() / *sufix;
+	while (std::filesystem::exists(temp_path)) {
+		temp_path /= "x";
+	}
 
-	std::string params = "a -v100k ";
-	params += *root_path + "\\" + *sufix + ".7z";
+	if (!std::filesystem::create_directories(temp_path)) {
+		return { 1, fmt::format("Failed to create temporary directory: {}", temp_path.string()) };
+	}
+
+	std::filesystem::path zip_path = temp_path / (*sufix + ".7z");
+	std::string zip_file = { zip_path.u8string() };
+	std::string params = "a -v10k ";
+	params.append(zip_file);
+
 	for (const auto &file : *file_list) {
 		params += " " + file;
 	}
@@ -27,10 +38,8 @@ void call_zip_app(const std::string *zip_executable, const std::string *root_pat
 
 	if (!ShellExecuteExA(&sei)) {
 		DWORD err = GetLastError();
-		printf("ShellExecuteExA failed, error code: %lu\n", err);
-		return;
+		return { 1, fmt::format("ShellExecuteExA failed, error code: {}", err) };
 	}
-	printf("Process launched successfully.\n");
 
 	// Since we used SEE_MASK_NOCLOSEPROCESS, we have a process handle we should close
 	if (sei.hProcess) {
@@ -38,4 +47,5 @@ void call_zip_app(const std::string *zip_executable, const std::string *root_pat
 		WaitForSingleObject(sei.hProcess, INFINITE);
 		CloseHandle(sei.hProcess);
 	}
+	return { 0, temp_path.string() };
 }

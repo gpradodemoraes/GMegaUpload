@@ -1,5 +1,10 @@
+#pragma once
+#ifndef _CALL_ZIP_APP_HPP_
+#define _CALL_ZIP_APP_HPP_
 #include <string>
 #include <vector>
+#include <utility>
 
-void call_zip_app(const std::string *zip_executable, const std::string *root_path, const std::string *sufix,
-				  const std::vector<std::string> *file_list);
+std::pair<int, std::string> call_zip_app(const std::string *zip_executable, const std::string *root_path,
+										 const std::string *sufix, const std::vector<std::string> *file_list);
+#endif

@@ -36,6 +36,7 @@
 #include "git_hash.h"
 #include "compiled_with.h"
 #include "call_zip_app.hpp"
+#include <utility>
 
 extern const char *build_date;
 
@@ -43,6 +44,21 @@ extern const char *build_date;
 // Get your APP_KEY for free at https://mega.io/developers#source-code
 constexpr const char APP_KEY[] = "9gETCbhB";
 constexpr const char USER_AGENT[] = "Simple-Client example app";
+
+namespace {
+bool getTimestampForFile(char *filetimpestamp) {
+	struct tm aTime;
+	time_t theTime;
+	time(&theTime);
+	localtime_s(&aTime, &theTime);
+
+	int month = aTime.tm_mon + 1;
+	int year = aTime.tm_year + 1900;
+	std::snprintf(filetimpestamp, 18, "%d-%02d-%02d-%02d%02d%02d", year, month, aTime.tm_mday, aTime.tm_hour,
+				  aTime.tm_min, aTime.tm_sec);
+	return true;
+}
+}; // namespace
 
 int main(int argc, char *argv[]) {
 	fmt::println("Gabriel's Mega Client");
@@ -94,7 +110,19 @@ int main(int argc, char *argv[]) {
 	config_file_handler.close();
 	gmegauploadconfig::config conf = data.get<gmegauploadconfig::config>();
 
-	call_zip_app(&std::string(conf.get_sevenzip_path()), &directory, &sufix, &files);
+	char timestamp[18];
+	getTimestampForFile(timestamp);
+	std::string new_sufix(sufix);
+	new_sufix += "_";
+	new_sufix += timestamp;
+
+	std::pair<int, std::string> zip_result =
+		call_zip_app(&std::string(conf.get_sevenzip_path()), &directory, &new_sufix, &files);
+
+	if (zip_result.first != 0) {
+		fmt::println("Failed to create zip file: {}", zip_result.second);
+		return 1;
+	}
 
 	const char *envEmail = conf.get_mega_email();
 	const char *envPassword = conf.get_mega_pwd();
