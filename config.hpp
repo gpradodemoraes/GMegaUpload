@@ -11,9 +11,10 @@ class config {
    private:
 	std::string mega_email;
 	std::string mega_pwd;
+	std::string sevenzip_path;
 
    public:
-	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd)
+	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd, sevenzip_path)
 
 	char *get_mega_email() { return (char *)mega_email.c_str(); }
 
@@ -32,6 +33,7 @@ std::string create_config_example() {
 	nlohmann::json data;
 	data["mega_email"] = "your_email@example.com";
 	data["mega_pwd"] = "your_password";
+	data["sevenzip_path"] = "C:\\Program Files\\7-Zip\\7z.exe";
 	return data.dump(4);
 }
 

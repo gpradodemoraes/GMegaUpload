@@ -81,19 +81,6 @@ int main(int argc, char *argv[]) {
 	const bool logToStdout =
 		!envStdout || *envStdout == '\0' || (envStdout[0] != '0' && envStdout[0] != 'f' && envStdout[0] != 'F');
 
-	static SimpleClientLogger fileLogger(logFilePath, logToStdout);
-	mega::MegaApi::addLoggerObject(&fileLogger, /*singleExclusiveLogger=*/true);
-	mega::MegaApi::setLogLevel(mega::MegaApi::LOG_LEVEL_INFO);
-
-	// Check the documentation of MegaApi to know how to enable local caching
-	mega::MegaApi *megaApi = new mega::MegaApi(APP_KEY, ".", USER_AGENT);
-
-	GListener listener;
-
-	// Listener to receive information about all request and transfers
-	// It is also possible to register a different listener per request/transfer
-	megaApi->addListener(&listener);
-
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
 	if (!config_file_handler.good()) {
 		fmt::println("Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
@@ -114,6 +101,19 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	/* Começando o processamento do MEGA API */
+	static SimpleClientLogger fileLogger(logFilePath, logToStdout);
+	mega::MegaApi::addLoggerObject(&fileLogger, /*singleExclusiveLogger=*/true);
+	mega::MegaApi::setLogLevel(mega::MegaApi::LOG_LEVEL_INFO);
+
+	// Check the documentation of MegaApi to know how to enable local caching
+	mega::MegaApi *megaApi = new mega::MegaApi(APP_KEY, ".", USER_AGENT);
+
+	GListener listener;
+
+	// Listener to receive information about all request and transfers
+	// It is also possible to register a different listener per request/transfer
+	megaApi->addListener(&listener);
 	// Login. You can get the result in the onRequestFinish callback of your listener
 	megaApi->login(envEmail, envPassword);
 
