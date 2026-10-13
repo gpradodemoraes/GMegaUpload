@@ -16,6 +16,7 @@ if(NOT VCPKG_ROOT AND DEFINED ENV{VCPKG_ROOT})
 endif()
 
 find_package(fmt CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(GIT_REV "N/A")
@@ -55,6 +56,7 @@ add_subdirectory(getopt)
 add_executable(gmegaupload build_timestamp.cpp SimpleClientLogger.cpp GListener.cpp main.cpp)
 
 target_link_libraries(gmegaupload PRIVATE fmt::fmt-header-only)
+target_link_libraries(gmegaupload PRIVATE nlohmann_json::nlohmann_json)
 target_link_libraries(gmegaupload PRIVATE libwinc)
 target_link_libraries(gmegaupload PRIVATE SDKlib)
 

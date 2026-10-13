@@ -29,6 +29,7 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include "config.hpp"
 #include "SimpleClientLogger.hpp"
 #include "GListener.hpp"
 #include <fmt/base.h>
@@ -71,7 +72,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	return 0;
 	// Route SDK logs to a file. Override the path with MEGA_LOG_FILE.
 	const char *envLogPath = std::getenv("MEGA_LOG_FILE");
 	const std::string logFilePath = (envLogPath && *envLogPath) ? envLogPath : "simple_client.log";
@@ -94,8 +94,19 @@ int main(int argc, char *argv[]) {
 	// It is also possible to register a different listener per request/transfer
 	megaApi->addListener(&listener);
 
-	const char *envEmail = std::getenv("MEGA_EMAIL");
-	const char *envPassword = std::getenv("MEGA_PWD");
+	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
+	if (!config_file_handler.good()) {
+		fmt::println("Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
+		return 1;
+	}
+	nlohmann::json data = nlohmann::json::parse(config_file_handler);
+	config_file_handler.close();
+	gmegauploadconfig::config conf = data.get<gmegauploadconfig::config>();
+
+	fmt::println("CONFIG: mega_email {}; mega_pwd {}", conf.get_mega_email(), conf.get_mega_pwd());
+
+	const char *envEmail = conf.get_mega_email();
+	const char *envPassword = conf.get_mega_pwd();
 	if (!envEmail || !*envEmail || !envPassword || !*envPassword) {
 		std::cerr << "Set the MEGA_EMAIL and MEGA_PWD environment variables before running." << std::endl;
 		return 1;

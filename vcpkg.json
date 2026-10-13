@@ -41,6 +41,7 @@
     "dependencies": [
 		"pkgconf",
         "fmt",
+		"nlohmann-json",
         "cryptopp",
         {
           "name": "curl",

@@ -8,16 +8,15 @@
 		"projectTarget": "gmegaupload.exe (bin\\Debug\\gmegaupload.exe)",
 		"name": "gmegaupload.exe (bin\\Debug\\gmegaupload.exe)",
 		"cwd": "",
-		"currentDir": "C:\\Users\\gprad\\AppData\\Local\\Temp\\testando",
 		"args": [
 			"--directory",
-			".",
+			"C:\\Users\\gabriel.moraes\\AppData\\Local\\Temp\\testando",
 			"--files",
-			"guto.png",
-			"emilio2.png",
-			"carteira_de_motorista.png",
+			"folha_desconto_de_ferias.png",
+			"importacao_arquivo_folha.png",
+			"importacao_arquivo_folha_concluir_processo.png",
 			"--sufix",
-			"megusta"
+			"THIS_IS_THE_SUFIX"
 		]
 	}
   ]
