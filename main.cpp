@@ -97,6 +97,8 @@ int main(int argc, char *argv[]) {
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
 	if (!config_file_handler.good()) {
 		fmt::println("Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
+		fmt::println("Create a config file {} like this:\n{}", gmegauploadconfig::gmegaupload_config_filename,
+					 gmegauploadconfig::create_config_example());
 		return 1;
 	}
 	nlohmann::json data = nlohmann::json::parse(config_file_handler);

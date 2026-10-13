@@ -28,6 +28,13 @@ class config {
 // inline constexpr const char *gmegaupload_access_filename = "gmegaupload_access.json";
 inline constexpr const char *gmegaupload_config_filename = "gmegaupload_config.json";
 
+std::string create_config_example() {
+	nlohmann::json data;
+	data["mega_email"] = "your_email@example.com";
+	data["mega_pwd"] = "your_password";
+	return data.dump(4);
+}
+
 // struct cloudfiles_info {
 //         std::string region;
 //         std::string public_url;
