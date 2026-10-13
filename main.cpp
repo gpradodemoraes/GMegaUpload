@@ -35,6 +35,8 @@
 #include <fmt/base.h>
 #include "git_hash.h"
 #include "compiled_with.h"
+#include "call_zip_app.hpp"
+
 extern const char *build_date;
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
@@ -92,7 +94,7 @@ int main(int argc, char *argv[]) {
 	config_file_handler.close();
 	gmegauploadconfig::config conf = data.get<gmegauploadconfig::config>();
 
-	fmt::println("CONFIG: mega_email {}; mega_pwd {}", conf.get_mega_email(), conf.get_mega_pwd());
+	call_zip_app(&std::string(conf.get_sevenzip_path()), &directory, &sufix, &files);
 
 	const char *envEmail = conf.get_mega_email();
 	const char *envPassword = conf.get_mega_pwd();
@@ -105,6 +107,9 @@ int main(int argc, char *argv[]) {
 	static SimpleClientLogger fileLogger(logFilePath, logToStdout);
 	mega::MegaApi::addLoggerObject(&fileLogger, /*singleExclusiveLogger=*/true);
 	mega::MegaApi::setLogLevel(mega::MegaApi::LOG_LEVEL_INFO);
+
+	fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_INFO, __FUNCTION__,
+				   fmt::format("mega_email {}; mega_pwd {}", envEmail, envPassword).c_str());
 
 	// Check the documentation of MegaApi to know how to enable local caching
 	mega::MegaApi *megaApi = new mega::MegaApi(APP_KEY, ".", USER_AGENT);

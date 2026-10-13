@@ -19,6 +19,8 @@ class config {
 	char *get_mega_email() { return (char *)mega_email.c_str(); }
 
 	char *get_mega_pwd() { return (char *)mega_pwd.c_str(); }
+
+	char *get_sevenzip_path() { return (char *)sevenzip_path.c_str(); }
 };
 
 // inline constexpr const char *identity_url = "https://identity.api.rackspacecloud.com/v2.0/tokens";
