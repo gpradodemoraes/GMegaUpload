@@ -3,6 +3,8 @@
 #include <fmt/format.h>
 #include <string>
 #include <utility>
+#include <memory>
+#include <vector>
 
 std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip_executable,
 														  const std::string *root_path, const std::string *sufix,

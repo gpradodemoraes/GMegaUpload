@@ -132,8 +132,9 @@ int main(int argc, char *argv[]) {
 	fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_INFO, __FUNCTION__,
 				   fmt::format("mega_email {}; mega_pwd {}", envEmail, envPassword).c_str());
 
+	const std::string sevenzip_path = std::string(conf.get_sevenzip_path());
 	std::pair<int, std::unique_ptr<std::string>> zip_result =
-		call_zip_app(&std::string(conf.get_sevenzip_path()), &directory, &new_sufix, &files);
+		call_zip_app(&sevenzip_path, &directory, &new_sufix, &files);
 
 	if (zip_result.first != 0) {
 		fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,
