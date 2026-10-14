@@ -37,6 +37,8 @@
 #include "compiled_with.h"
 #include "call_zip_app.hpp"
 #include <utility>
+#include <memory>
+#include "fmt/format.h"
 
 extern const char *build_date;
 
@@ -90,15 +92,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	// Route SDK logs to a file. Override the path with MEGA_LOG_FILE.
-	const char *envLogPath = std::getenv("MEGA_LOG_FILE");
-	const std::string logFilePath = (envLogPath && *envLogPath) ? envLogPath : "simple_client.log";
-
-	// Tee logs to stdout by default. Disable with MEGA_LOG_STDOUT=0 (or =false).
-	const char *envStdout = std::getenv("MEGA_LOG_STDOUT");
-	const bool logToStdout =
-		!envStdout || *envStdout == '\0' || (envStdout[0] != '0' && envStdout[0] != 'f' && envStdout[0] != 'F');
-
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
 	if (!config_file_handler.good()) {
 		fmt::println("Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
@@ -110,19 +103,19 @@ int main(int argc, char *argv[]) {
 	config_file_handler.close();
 	gmegauploadconfig::config conf = data.get<gmegauploadconfig::config>();
 
+	// Route SDK logs to a file. Override the path with MEGA_LOG_FILE.
+	const std::string logFilePath = std::string(conf.get_mega_log_file());
+
+	// Tee logs to stdout by default. Disable with MEGA_LOG_STDOUT=0 (or =false).
+	const char *envStdout = "true"; // colocar "false" para desligar
+	const bool logToStdout =
+		!envStdout || *envStdout == '\0' || (envStdout[0] != '0' && envStdout[0] != 'f' && envStdout[0] != 'F');
+
 	char timestamp[18];
 	getTimestampForFile(timestamp);
 	std::string new_sufix(sufix);
 	new_sufix += "_";
 	new_sufix += timestamp;
-
-	std::pair<int, std::unique_ptr<std::string>> zip_result =
-		call_zip_app(&std::string(conf.get_sevenzip_path()), &directory, &new_sufix, &files);
-
-	if (zip_result.first != 0) {
-		fmt::println("Failed to create zip file: {}", *zip_result.second);
-		return 1;
-	}
 
 	const char *envEmail = conf.get_mega_email();
 	const char *envPassword = conf.get_mega_pwd();
@@ -139,6 +132,14 @@ int main(int argc, char *argv[]) {
 	fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_INFO, __FUNCTION__,
 				   fmt::format("mega_email {}; mega_pwd {}", envEmail, envPassword).c_str());
 
+	std::pair<int, std::unique_ptr<std::string>> zip_result =
+		call_zip_app(&std::string(conf.get_sevenzip_path()), &directory, &new_sufix, &files);
+
+	if (zip_result.first != 0) {
+		fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,
+					   fmt::format("Failed to create zip file: {}", *zip_result.second).c_str());
+		return 1;
+	}
 	// Check the documentation of MegaApi to know how to enable local caching
 	mega::MegaApi *megaApi = new mega::MegaApi(APP_KEY, ".", USER_AGENT);
 

@@ -12,15 +12,18 @@ class config {
 	std::string mega_email;
 	std::string mega_pwd;
 	std::string sevenzip_path;
+	std::string mega_log_file;
 
    public:
-	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd, sevenzip_path)
+	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd, sevenzip_path, mega_log_file)
 
 	char *get_mega_email() { return (char *)mega_email.c_str(); }
 
 	char *get_mega_pwd() { return (char *)mega_pwd.c_str(); }
 
 	char *get_sevenzip_path() { return (char *)sevenzip_path.c_str(); }
+
+	char *get_mega_log_file() { return (char *)mega_log_file.c_str(); }
 };
 
 // inline constexpr const char *identity_url = "https://identity.api.rackspacecloud.com/v2.0/tokens";
@@ -36,6 +39,7 @@ std::string create_config_example() {
 	data["mega_email"] = "your_email@example.com";
 	data["mega_pwd"] = "your_password";
 	data["sevenzip_path"] = "C:\\Program Files\\7-Zip\\7z.exe";
+	data["mega_log_file"] = "megaupload_log_file.log";
 	return data.dump(4);
 }
 
