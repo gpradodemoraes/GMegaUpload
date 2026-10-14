@@ -1,5 +1,29 @@
 #include "GListener.hpp"
 #include "megaapi.h"
+#include <string>
+
+namespace {
+class CreateFolderListener : public mega::MegaRequestListener {
+	void onRequestStart(mega::MegaApi *api, mega::MegaRequest *request) {
+		std::cout << "***** Folder create start" << std::endl;
+	}
+
+	void onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e) override {
+		if (e->getErrorCode() != mega::MegaError::API_OK) {
+			std::cout << "***** Error creating folder: " << e->getErrorString() << std::endl;
+			return;
+		}
+		std::cout << "***** Folder created successfully" << std::endl;
+		api->fetchNodes();
+	}
+
+	void onRequestUpdate(mega::MegaApi *api, mega::MegaRequest *request) {
+		std::cout << "***** Folder create update" << std::endl;
+	}
+};
+
+CreateFolderListener create_folder_listener;
+} // namespace
 
 void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e) {
 	if (e->getErrorCode() != mega::MegaError::API_OK) {
@@ -16,27 +40,35 @@ void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, 
 			std::cout << "***** Showing files/folders in the root folder:" << std::endl;
 			mega::MegaNode *root = api->getRootNode();
 			mega::MegaNodeList *list = api->getChildren(root);
-
+			bool remote_folder_found = false;
 			for (int i = 0; i < list->size(); i++) {
 				mega::MegaNode *node = list->get(i);
-				if (node->isFile())
-					std::cout << "*****   File:   ";
-				else
-					std::cout << "*****   Folder: ";
-
-				std::cout << node->getName() << std::endl;
+				if (node->isFile()) continue;
+				if (node->getName() == remote_folder) {
+					std::cout << "*****   WE FOUND HIM! : ";
+					std::cout << node->getName() << std::endl;
+					remote_folder_node = node->copy();
+					remote_folder_found = true;
+					break;
+				}
 			}
 			std::cout << "***** Done" << std::endl;
 
 			delete list;
+			if (!remote_folder_found) {
+				api->createFolder(remote_folder.c_str(), root, &create_folder_listener);
+				delete root;
+				break;
+			}
 
 			std::cout << "***** Uploading the image MEGA.png" << std::endl;
 
 			mega::MegaUploadOptions uploadOptions;
 			uploadOptions.mtime = 0;
-			api->startUpload(std::string{ "MEGA.png" }, root, nullptr, &uploadOptions, nullptr);
+			api->startUpload(std::string{ "MEGA-GABRIEL.png" }, remote_folder_node, nullptr, &uploadOptions, nullptr);
 
 			delete root;
+			delete remote_folder_node;
 
 			break;
 		}

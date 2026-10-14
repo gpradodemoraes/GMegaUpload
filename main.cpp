@@ -39,6 +39,7 @@
 #include <utility>
 #include <memory>
 #include "fmt/format.h"
+#include <filesystem>
 
 extern const char *build_date;
 
@@ -71,13 +72,15 @@ int main(int argc, char *argv[]) {
 	constexpr option ceasa_testing_options[] = { { "files", required_argument, nullptr, 'f' },
 												 { "directory", required_argument, nullptr, 'd' },
 												 { "sufix", required_argument, nullptr, 's' },
+												 { "remote_folder", required_argument, nullptr, 'r' },
 												 { nullptr, 0 } };
 	int opt{};
 	int longindex{};
 	std::string directory;
 	std::string sufix;
+	std::string remote_folder;
 	std::vector<std::string> files;
-	while ((opt = getopt_long(argc, argv, "fd:s:", ceasa_testing_options, &longindex)) != -1) {
+	while ((opt = getopt_long(argc, argv, "f:d:s:r:", ceasa_testing_options, &longindex)) != -1) {
 		switch (opt) {
 			case 'd': directory = std::string(optarg); break;
 			case 'f': {
@@ -88,8 +91,12 @@ int main(int argc, char *argv[]) {
 				}
 			} break;
 			case 's': sufix = std::string(optarg); break;
+			case 'r': remote_folder = std::string(optarg); break;
 			default: break;
 		}
+	}
+	if (remote_folder.empty()) {
+		remote_folder = "MEGA_uploads";
 	}
 
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
@@ -144,7 +151,9 @@ int main(int argc, char *argv[]) {
 	// Check the documentation of MegaApi to know how to enable local caching
 	mega::MegaApi *megaApi = new mega::MegaApi(APP_KEY, ".", USER_AGENT);
 
-	GListener listener;
+	std::filesystem::path mypath = std::filesystem::path(*zip_result.second);
+
+	GListener listener(&mypath, remote_folder);
 
 	// Listener to receive information about all request and transfers
 	// It is also possible to register a different listener per request/transfer

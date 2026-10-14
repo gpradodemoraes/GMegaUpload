@@ -8,10 +8,19 @@
 #include <string>
 #include <thread>
 #include <time.h>
+#include <filesystem>
 
 class GListener : public mega::MegaListener {
+   private:
+	const std::filesystem::path *zip_files_directory;
+	const std::string remote_folder;
+	mega::MegaNode *remote_folder_node = nullptr;
+
    public:
 	bool finished{};
+
+	GListener(std::filesystem::path *path, std::string remote_folder)
+		: zip_files_directory(path), remote_folder(remote_folder) {};
 
 	virtual void onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e);
 
