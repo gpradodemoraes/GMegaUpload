@@ -4,15 +4,17 @@
 #include <string>
 #include <utility>
 
-std::pair<int, std::string> call_zip_app(const std::string *zip_executable, const std::string *root_path,
-										 const std::string *sufix, const std::vector<std::string> *file_list) {
+std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip_executable,
+														  const std::string *root_path, const std::string *sufix,
+														  const std::vector<std::string> *file_list) {
 	std::filesystem::path temp_path = std::filesystem::temp_directory_path() / *sufix;
 	while (std::filesystem::exists(temp_path)) {
 		temp_path /= "x";
 	}
 
 	if (!std::filesystem::create_directories(temp_path)) {
-		return { 1, fmt::format("Failed to create temporary directory: {}", temp_path.string()) };
+		return { 1, std::make_unique<std::string>(
+						fmt::format("Failed to create temporary directory: {}", temp_path.string())) };
 	}
 
 	std::filesystem::path zip_path = temp_path / (*sufix + ".7z");
@@ -38,7 +40,7 @@ std::pair<int, std::string> call_zip_app(const std::string *zip_executable, cons
 
 	if (!ShellExecuteExA(&sei)) {
 		DWORD err = GetLastError();
-		return { 1, fmt::format("ShellExecuteExA failed, error code: {}", err) };
+		return { 1, std::make_unique<std::string>(fmt::format("ShellExecuteExA failed, error code: {}", err)) };
 	}
 
 	// Since we used SEE_MASK_NOCLOSEPROCESS, we have a process handle we should close
@@ -47,5 +49,5 @@ std::pair<int, std::string> call_zip_app(const std::string *zip_executable, cons
 		WaitForSingleObject(sei.hProcess, INFINITE);
 		CloseHandle(sei.hProcess);
 	}
-	return { 0, temp_path.string() };
+	return { 0, std::make_unique<std::string>(temp_path.string()) };
 }

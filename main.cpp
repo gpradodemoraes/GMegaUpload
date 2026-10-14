@@ -116,11 +116,11 @@ int main(int argc, char *argv[]) {
 	new_sufix += "_";
 	new_sufix += timestamp;
 
-	std::pair<int, std::string> zip_result =
+	std::pair<int, std::unique_ptr<std::string>> zip_result =
 		call_zip_app(&std::string(conf.get_sevenzip_path()), &directory, &new_sufix, &files);
 
 	if (zip_result.first != 0) {
-		fmt::println("Failed to create zip file: {}", zip_result.second);
+		fmt::println("Failed to create zip file: {}", *zip_result.second);
 		return 1;
 	}
 
