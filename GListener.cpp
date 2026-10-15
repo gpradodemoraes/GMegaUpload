@@ -3,9 +3,13 @@
 #include <string>
 #include <system_error>
 #include <filesystem>
+#include <mutex>
 
 namespace {
 class CreateFolderListener : public mega::MegaRequestListener {
+   public:
+	mega::MegaNode *root = nullptr;
+
 	void onRequestStart(mega::MegaApi *api, mega::MegaRequest *request) {
 		std::cout << "***** Folder create start" << std::endl;
 	}
@@ -16,6 +20,7 @@ class CreateFolderListener : public mega::MegaRequestListener {
 			return;
 		}
 		std::cout << "***** Folder created successfully" << std::endl;
+		delete root;
 		api->fetchNodes();
 	}
 
@@ -58,10 +63,11 @@ void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, 
 
 			delete list;
 			if (!remote_folder_found) {
+				create_folder_listener.root = root;
 				api->createFolder(remote_folder.c_str(), root, &create_folder_listener);
-				delete root;
 				break;
 			}
+			if (root) delete root;
 
 			if (zip_files_directory == nullptr) {
 				std::cerr << "Directory pointer is null\n";
@@ -77,6 +83,7 @@ void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, 
 				break;
 			}
 
+			const std::lock_guard<std::mutex> lock(counter_mutex);
 			for (const std::filesystem::directory_entry &entry :
 				 std::filesystem::directory_iterator(*zip_files_directory, ec)) {
 				if (entry.is_regular_file()) {
@@ -84,12 +91,9 @@ void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, 
 					mega::MegaUploadOptions uploadOptions;
 					uploadOptions.mtime = 0;
 					api->startUpload(entry.path().string(), remote_folder_node, nullptr, &uploadOptions, nullptr);
+					thread_counter++;
 				}
 			}
-
-			delete root;
-			delete remote_folder_node;
-
 			break;
 		}
 		default: break;
@@ -112,8 +116,11 @@ void GListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *, mega::Me
 	} else {
 		std::cout << "***** Transfer finished OK" << std::endl;
 	}
-
-	finished = true;
+	const std::lock_guard<std::mutex> lock(counter_mutex);
+	thread_counter--;
+	if (thread_counter == 0) {
+		finished = true;
+	}
 }
 
 void GListener::onTransferUpdate(mega::MegaApi *, mega::MegaTransfer *transfer) {

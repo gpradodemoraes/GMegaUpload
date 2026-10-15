@@ -25,7 +25,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 	params.append(zip_file);
 
 	for (const auto &file : *file_list) {
-		params += " " + file;
+		params += " \"" + file + "\"";
 	}
 
 	SHELLEXECUTEINFOA sei = { 0 };

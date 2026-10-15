@@ -15,6 +15,8 @@ class GListener : public mega::MegaListener {
 	const std::filesystem::path *zip_files_directory;
 	const std::string remote_folder;
 	mega::MegaNode *remote_folder_node = nullptr;
+	std::mutex counter_mutex;
+	int thread_counter = 0;
 
    public:
 	bool finished{};
