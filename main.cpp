@@ -40,6 +40,7 @@
 #include <memory>
 #include "fmt/format.h"
 #include <filesystem>
+#include <fstream>
 
 extern const char *build_date;
 

@@ -1,6 +1,8 @@
 #include "GListener.hpp"
 #include "megaapi.h"
 #include <string>
+#include <system_error>
+#include <filesystem>
 
 namespace {
 class CreateFolderListener : public mega::MegaRequestListener {
@@ -61,11 +63,29 @@ void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, 
 				break;
 			}
 
-			std::cout << "***** Uploading the image MEGA.png" << std::endl;
+			if (zip_files_directory == nullptr) {
+				std::cerr << "Directory pointer is null\n";
+				finished = true;
+				break;
+			}
 
-			mega::MegaUploadOptions uploadOptions;
-			uploadOptions.mtime = 0;
-			api->startUpload(std::string{ "MEGA-GABRIEL.png" }, remote_folder_node, nullptr, &uploadOptions, nullptr);
+			std::error_code ec;
+			if (!std::filesystem::is_directory(*zip_files_directory, ec)) {
+				std::cerr << "Not a valid directory: " << *zip_files_directory << (ec ? " (" + ec.message() + ")" : "")
+						  << '\n';
+				finished = true;
+				break;
+			}
+
+			for (const std::filesystem::directory_entry &entry :
+				 std::filesystem::directory_iterator(*zip_files_directory, ec)) {
+				if (entry.is_regular_file()) {
+					std::cout << "***** Uploading " << entry.path().filename().string() << '\n';
+					mega::MegaUploadOptions uploadOptions;
+					uploadOptions.mtime = 0;
+					api->startUpload(entry.path().string(), remote_folder_node, nullptr, &uploadOptions, nullptr);
+				}
+			}
 
 			delete root;
 			delete remote_folder_node;
