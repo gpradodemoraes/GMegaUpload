@@ -10,7 +10,7 @@
 		"cwd": "",
 		"args": [
 			"--directory",
-			"C:\\Users\\gabriel.moraes\\AppData\\Local\\Temp\\testando",
+			"${env.TEMP}\\testando",
 			"--files",
 			"folha_desconto_de_ferias.png",
 			"importacao_arquivo_folha.png",
