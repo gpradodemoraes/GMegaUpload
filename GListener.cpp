@@ -120,6 +120,7 @@ void GListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *, mega::Me
 	thread_counter--;
 	if (thread_counter == 0) {
 		finished = true;
+		if (remote_folder_node) delete remote_folder_node;
 	}
 }
 
