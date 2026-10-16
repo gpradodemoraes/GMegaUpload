@@ -10,21 +10,24 @@ class CreateFolderListener : public mega::MegaRequestListener {
    public:
 	mega::MegaNode *root = nullptr;
 
-	void onRequestStart(mega::MegaApi *api, mega::MegaRequest *request) {
+	void onRequestStart([[maybe_unused]] mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request) override {
 		std::cout << "***** Folder create start" << std::endl;
 	}
 
-	void onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e) override {
+	void onRequestFinish(mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request, mega::MegaError *e) override {
+		if (root) {
+			delete root;
+			root = nullptr;
+		}
 		if (e->getErrorCode() != mega::MegaError::API_OK) {
 			std::cout << "***** Error creating folder: " << e->getErrorString() << std::endl;
 			return;
 		}
 		std::cout << "***** Folder created successfully" << std::endl;
-		delete root;
 		api->fetchNodes();
 	}
 
-	void onRequestUpdate(mega::MegaApi *api, mega::MegaRequest *request) {
+	void onRequestUpdate([[maybe_unused]] mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request) override {
 		std::cout << "***** Folder create update" << std::endl;
 	}
 };
