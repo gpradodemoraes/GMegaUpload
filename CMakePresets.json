@@ -57,6 +57,21 @@
           "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
         }
       }
-    }
+    },
+        {
+            "name": "RLS_Linux",
+            "displayName": "Release gmegaupload",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+				"USE_READLINE": "OFF",
+				"CMAKE_C_COMPILER": "gcc",
+				"CMAKE_CXX_COMPILER": "g++",
+				"CMAKE_MAKE_PROGRAM": "ninja",
+                "VCPKG_ROOT": "/home/moraesgp/vcpkg",
+                "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            }
+        }
     ]
 }
