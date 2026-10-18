@@ -37,6 +37,13 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 		params.push_back(file);
 	}
 
+	std::vector<char *> myargs;
+	for (auto &s : params) {
+		fmt::println("FMT: {}", s);
+		myargs.push_back(s.data());
+	}
+	myargs.push_back(nullptr);
+
 	pid_t pid = fork();
 	if (pid < 0) {
 		std::perror("fork");
@@ -48,18 +55,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 			_exit(1);
 		}
 		// Child process: replace itself with 7z
-		const char **myargs = static_cast<const char **>(malloc(sizeof(char *) * (params.size() + 1)));
-		const char **ptMyargs = myargs;
-		for (int i = 0; i < params.size(); i++) {
-			fmt::println("FMT: {}", params[i]);
-			*ptMyargs = params[i].c_str();
-			ptMyargs++;
-		}
-		*ptMyargs = nullptr;
-
-		execvp(myargs[0], const_cast<char *const *>(myargs));
-
-		free(myargs);
+		execvp(myargs[0], myargs.data());
 
 		// Only reached if execvp failed (e.g. 7z not installed)
 		std::fprintf(stderr, "execvp failed: %s\n", std::strerror(errno));
