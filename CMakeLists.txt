@@ -53,7 +53,14 @@ add_subdirectory(third_party/mega-sdk)
 include_directories(getopt/include)
 add_subdirectory(getopt)
 
-add_executable(gmegaupload build_timestamp.cpp SimpleClientLogger.cpp GListener.cpp call_zip_app.cpp main.cpp)
+set(GMEGAUPLOAD_SRC build_timestamp.cpp SimpleClientLogger.cpp GListener.cpp main.cpp)
+if(WIN32)
+	set(GMEGAUPLOAD_SRC call_zip_app_Windows.cpp ${GMEGAUPLOAD_SRC})
+else()
+	set(GMEGAUPLOAD_SRC call_zip_app_Linux.cpp ${GMEGAUPLOAD_SRC})
+endif()
+
+add_executable(gmegaupload ${GMEGAUPLOAD_SRC})
 
 target_link_libraries(gmegaupload PRIVATE fmt::fmt-header-only)
 target_link_libraries(gmegaupload PRIVATE nlohmann_json::nlohmann_json)

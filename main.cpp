@@ -41,6 +41,7 @@
 #include "fmt/format.h"
 #include <filesystem>
 #include <fstream>
+#include <cstdio>
 
 extern const char *build_date;
 
@@ -54,8 +55,11 @@ bool getTimestampForFile(char *filetimpestamp) {
 	struct tm aTime;
 	time_t theTime;
 	time(&theTime);
+#ifdef _WIN32
 	localtime_s(&aTime, &theTime);
-
+#else
+	localtime_r(&theTime, &aTime);
+#endif
 	int month = aTime.tm_mon + 1;
 	int year = aTime.tm_year + 1900;
 	std::snprintf(filetimpestamp, 18, "%d-%02d-%02d-%02d%02d%02d", year, month, aTime.tm_mday, aTime.tm_hour,
