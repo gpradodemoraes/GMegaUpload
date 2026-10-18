@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
+#include <fmt/base.h>
 
 std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip_executable,
 														  const std::string *root_path, const std::string *sufix,
@@ -28,11 +29,12 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 	std::string zip_file = { zip_path.u8string() };
 	std::vector<std::string> params;
 	params.push_back(*zip_executable);
-	params.emplace_back("a -v10m ");
+	params.emplace_back("a");
+	params.emplace_back("-v10m");
 	params.push_back(zip_file);
 
 	for (const auto &file : *file_list) {
-		params.push_back(" \"" + file + "\"");
+		params.push_back(file);
 	}
 
 	pid_t pid = fork();
@@ -41,16 +43,23 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 		return { 1, std::make_unique<std::string>("process failed to fork!") };
 	}
 	if (pid == 0) {
+		if (chdir(root_path->c_str()) != 0) {
+			std::perror("chdir");
+			_exit(1);
+		}
 		// Child process: replace itself with 7z
 		const char **myargs = static_cast<const char **>(malloc(sizeof(char *) * (params.size() + 1)));
 		const char **ptMyargs = myargs;
-		for (int i = 0; i++; i < params.size()) {
+		for (int i = 0; i < params.size(); i++) {
+			fmt::println("FMT: {}", params[i]);
 			*ptMyargs = params[i].c_str();
 			ptMyargs++;
 		}
-		ptMyargs = nullptr;
+		*ptMyargs = nullptr;
 
 		execvp(myargs[0], const_cast<char *const *>(myargs));
+
+		free(myargs);
 
 		// Only reached if execvp failed (e.g. 7z not installed)
 		std::fprintf(stderr, "execvp failed: %s\n", std::strerror(errno));

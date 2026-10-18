@@ -32,7 +32,7 @@
 			"externalConsole": true,
 			"args": [
 				"--directory",
-				"${env.TEMP}\\testando",
+				"/home/gprad/testando",
 				"--remote_folder",
 				"futurosqlitebackup",
 				"--files",
