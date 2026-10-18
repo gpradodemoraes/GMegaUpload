@@ -36,6 +36,27 @@
 				"VCPKG_TARGET_TRIPLET": "x64-windows-static-v142",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
+        }	,{
+      "name": "LinuxDBG_gmegaupload",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+			"cacheVariables": {
+				"VCPKG_ROOT": "/home/gprad/.local/share/vcpkg",
+				"USE_READLINE": "OFF",
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_C_COMPILER": "gcc",
+				"CMAKE_CXX_COMPILER": "g++",
+				"CMAKE_MAKE_PROGRAM": "ninja",
+				"CMAKE_TOOLCHAIN_FILE": "$env{HOME}/.local/share/vcpkg/scripts/buildsystems/vcpkg.cmake"
+			},
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Linux" ]
+        },
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "sourceDir": "$env{HOME}/.vs/$ms{projectDirName}"
         }
+      }
+    }
     ]
 }
