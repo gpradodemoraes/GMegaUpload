@@ -42,7 +42,15 @@
 #include <filesystem>
 #include <fstream>
 #include <cstdio>
+#include <condition_variable>
+#include <mutex>
 
+std::condition_variable fastlogin_cv;
+std::mutex fastlogin_mtx;
+bool fastloginfinshed{ false };
+#include "FastLoginListener.hpp"
+#include "nlohmann\detail\exceptions.hpp"
+#include <istream>
 extern const char *build_date;
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
@@ -66,6 +74,23 @@ bool getTimestampForFile(char *filetimpestamp) {
 				  aTime.tm_min, aTime.tm_sec);
 	return true;
 }
+
+void write_session_key_to_disk(const char *session_key, const std::string &path) {
+	std::ofstream out(path);
+	out.write(session_key, strlen(session_key));
+	out.close();
+}
+
+std::string read_session_key_from_disk(const std::string &path) {
+	std::ifstream input(path);
+	char buffer[64];
+	std::string key;
+	while (input.read(buffer, sizeof(buffer)) || input.gcount() > 0) {
+		key += std::string(buffer, input.gcount());
+	}
+	input.close();
+	return key;
+}
 }; // namespace
 
 int main(int argc, char *argv[]) {
@@ -74,16 +99,17 @@ int main(int argc, char *argv[]) {
 	fmt::println("Git: {} {}", GIT_REV, GIT_BRANCH);
 	fmt::println("Build date: {}", build_date);
 
-	constexpr option ceasa_testing_options[] = { { "files", required_argument, nullptr, 'f' },
-												 { "directory", required_argument, nullptr, 'd' },
-												 { "sufix", required_argument, nullptr, 's' },
-												 { "remote_folder", required_argument, nullptr, 'r' },
-												 { nullptr, 0 } };
+	constexpr option ceasa_testing_options[] = {
+		{ "files", required_argument, nullptr, 'f' },	 { "directory", required_argument, nullptr, 'd' },
+		{ "sufix", required_argument, nullptr, 's' },	 { "remote_folder", required_argument, nullptr, 'r' },
+		{ "log_file", required_argument, nullptr, 'l' }, { nullptr, 0 }
+	};
 	int opt{};
 	int longindex{};
 	std::string directory;
 	std::string sufix;
 	std::string remote_folder;
+	std::string log_file;
 	std::vector<std::string> files;
 	while ((opt = getopt_long(argc, argv, "f:d:s:r:", ceasa_testing_options, &longindex)) != -1) {
 		switch (opt) {
@@ -96,6 +122,7 @@ int main(int argc, char *argv[]) {
 				}
 			} break;
 			case 's': sufix = std::string(optarg); break;
+			case 'l': log_file = std::string(optarg); break;
 			case 'r': remote_folder = std::string(optarg); break;
 			default: break;
 		}
@@ -111,12 +138,21 @@ int main(int argc, char *argv[]) {
 					 gmegauploadconfig::create_config_example());
 		return 1;
 	}
-	nlohmann::json data = nlohmann::json::parse(config_file_handler);
-	config_file_handler.close();
-	gmegauploadconfig::config conf = data.get<gmegauploadconfig::config>();
+	nlohmann::json data;
+	gmegauploadconfig::config conf;
+	try {
+		data = nlohmann::json::parse(config_file_handler);
+		config_file_handler.close();
+		conf = data.get<gmegauploadconfig::config>();
+
+	} catch (nlohmann::detail::out_of_range &e) {
+		fmt::println("problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename, e.what());
+		return 1;
+	}
 
 	// Route SDK logs to a file. Override the path with MEGA_LOG_FILE.
-	const std::string logFilePath = std::string(conf.get_mega_log_file());
+
+	const std::string logFilePath = log_file.empty() ? nullptr : log_file;
 
 	// Tee logs to stdout by default. Disable with MEGA_LOG_STDOUT=0 (or =false).
 	const char *envStdout = "true"; // colocar "false" para desligar
@@ -141,8 +177,8 @@ int main(int argc, char *argv[]) {
 	mega::MegaApi::addLoggerObject(&fileLogger, /*singleExclusiveLogger=*/true);
 	mega::MegaApi::setLogLevel(mega::MegaApi::LOG_LEVEL_INFO);
 
-	fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_INFO, __FUNCTION__,
-				   fmt::format("mega_email {}; mega_pwd {}", envEmail, envPassword).c_str());
+	// fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_INFO, __FUNCTION__,
+	// 			   fmt::format("mega_email {}; mega_pwd {}", envEmail, envPassword).c_str());
 
 	const std::string sevenzip_path = std::string(conf.get_sevenzip_path());
 	std::pair<int, std::unique_ptr<std::string>> zip_result =
@@ -160,11 +196,23 @@ int main(int argc, char *argv[]) {
 
 	GListener listener(&mypath, remote_folder);
 
+	FastLoginListener fl;
+	{
+		std::string session_key = read_session_key_from_disk(conf.get_session_key_file());
+		megaApi->fastLogin(session_key.c_str(), &fl);
+		std::unique_lock<std::mutex> lock(fastlogin_mtx);
+		fastlogin_cv.wait(lock, [] { return fastloginfinshed; });
+	}
+	megaApi->removeRequestListener(&fl);
+	megaApi->addListener(&listener);
+	if (fl.isLoginSuccessful()) {
+		megaApi->fetchNodes();
+	} else {
+		megaApi->login(envEmail, envPassword);
+	}
 	// Listener to receive information about all request and transfers
 	// It is also possible to register a different listener per request/transfer
-	megaApi->addListener(&listener);
 	// Login. You can get the result in the onRequestFinish callback of your listener
-	megaApi->login(envEmail, envPassword);
 
 	// You can use the main thread to show a GUI or anything else. MegaApi runs in a background
 	// thread.
@@ -173,9 +221,16 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Add code here to exercise MegaApi
+	char *sessionKey = megaApi->dumpSession();
 
+	write_session_key_to_disk(sessionKey, conf.get_session_key_file());
+
+	// LogoutListener logoutListener;
+	megaApi->localLogout();
+	// megaApi->logout(true, &logoutListener);
 	megaApi->removeListener(&listener);
 	delete megaApi;
 	mega::MegaApi::removeLoggerObject(&fileLogger);
+	delete sessionKey;
 	return 0;
 }

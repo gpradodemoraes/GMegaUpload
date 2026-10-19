@@ -14,14 +14,15 @@
 				"--remote_folder",
 				"futurosqlitebackup",
 				"--files",
-				"carteira_de_motorista.png",
-				"emilio2.png",
-				"guto.png",
-				"neelam279-teddy-bear-6937569_1920.jpg",
-				"roszie-graduation-7749218_1920.jpg",
-				"susanne906-dog-5555443_1920q.jpg",
+
+				"folha_desconto_de_ferias.png",
+				"importacao_arquivo_folha_concluir_processo.png",
+				"importacao_arquivo_folha_final.png",
+				"importacao_arquivo_folha_selecionar_filial.png",
+				"importacao_arquivo_folha.png",
+
 				"--sufix",
-				"FOTOS_GABRIEL"
+				"FOTOS_GABRIEL","--log_file", "my_mega_logfile.log"
 			]
 		},
 		{
@@ -43,7 +44,7 @@
 				"roszie-graduation-7749218_1920.jpg",
 				"susanne906-dog-5555443_1920q.jpg",
 				"--sufix",
-				"FOTOS_GABRIEL"
+				"FOTOS_GABRIEL","--log_file", "my_mega_logfile.log"
 			]
 		}
 	]
