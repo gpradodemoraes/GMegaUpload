@@ -6,7 +6,8 @@ class FastLoginListener : public mega::MegaRequestListener {
 		std::cout << "***** Fast login start" << std::endl;
 	}
 
-	void onRequestFinish(mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request, mega::MegaError *e) override {
+	void onRequestFinish([[maybe_unused]] mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request,
+						 mega::MegaError *e) override {
 		std::cout << "***** Fast login finished successfully" << std::endl;
 		if (request->getType() == mega::MegaRequest::TYPE_LOGIN) {
 			std::lock_guard<std::mutex> lock(fastlogin_mtx);
