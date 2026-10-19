@@ -18,7 +18,9 @@
  * You should have received a copy of the license along with this
  * program.
  */
-
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 #include <mega/log_level.h>
 #include "getopt.h"
 #include <chrono>
@@ -152,7 +154,7 @@ int main(int argc, char *argv[]) {
 
 	// Route SDK logs to a file. Override the path with MEGA_LOG_FILE.
 
-	const std::string logFilePath = log_file.empty() ? nullptr : log_file;
+	const std::string logFilePath = log_file.empty() ? "" : log_file;
 
 	// Tee logs to stdout by default. Disable with MEGA_LOG_STDOUT=0 (or =false).
 	const char *envStdout = "true"; // colocar "false" para desligar
@@ -171,7 +173,10 @@ int main(int argc, char *argv[]) {
 		std::cerr << "Set the MEGA_EMAIL and MEGA_PWD environment variables before running." << std::endl;
 		return 1;
 	}
-
+#ifdef _WIN32
+	HANDLE h = CreateMutexA(nullptr, FALSE, "Global\\GMegaUploadMutex");
+	WaitForSingleObject(h, INFINITE);
+#endif
 	/* Começando o processamento do MEGA API */
 	static SimpleClientLogger fileLogger(logFilePath, logToStdout);
 	mega::MegaApi::addLoggerObject(&fileLogger, /*singleExclusiveLogger=*/true);
@@ -232,5 +237,9 @@ int main(int argc, char *argv[]) {
 	delete megaApi;
 	mega::MegaApi::removeLoggerObject(&fileLogger);
 	delete sessionKey;
+#ifdef _WIN32
+	ReleaseMutex(h);
+	CloseHandle(h);
+#endif
 	return 0;
 }
