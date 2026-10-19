@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 #include <mega/log_level.h>
+#include <ctime>
 
 SimpleClientLogger::SimpleClientLogger(const std::string &path, bool logToStdout)
 	: mStream(path, std::ios::app), mLogToStdout(logToStdout) {
@@ -26,7 +27,13 @@ void SimpleClientLogger::log(const char * /*time*/, int loglevel, const char *so
 	const auto t = system_clock::to_time_t(now);
 	const auto ms = duration_cast<milliseconds>(now.time_since_epoch()).count() % 1000;
 	char hms[16];
+#ifdef _WIN32
+	struct tm tmDest;
+	localtime_s(&tmDest, &t);
+	std::strftime(hms, sizeof(hms), "%H:%M:%S", &tmDest);
+#else
 	std::strftime(hms, sizeof(hms), "%H:%M:%S", std::localtime(&t));
+#endif
 	char timestamp[32];
 	std::snprintf(timestamp, sizeof(timestamp), "%s.%03lld", hms, static_cast<long long>(ms));
 
