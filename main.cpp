@@ -20,6 +20,10 @@
  */
 #ifdef _WIN32
 #include <Windows.h>
+#else
+#include <sys/file.h>
+#include <fcntl.h>
+#include <unistd.h>
 #endif
 #include <mega/log_level.h>
 #include "getopt.h"
@@ -46,14 +50,13 @@
 #include <cstdio>
 #include <condition_variable>
 #include <mutex>
-
+#include "nlohmann/detail/exceptions.hpp"
+#include <istream>
+extern const char *build_date;
 std::condition_variable fastlogin_cv;
 std::mutex fastlogin_mtx;
 bool fastloginfinshed{ false };
 #include "FastLoginListener.hpp"
-#include "nlohmann\detail\exceptions.hpp"
-#include <istream>
-extern const char *build_date;
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -176,6 +179,9 @@ int main(int argc, char *argv[]) {
 #ifdef _WIN32
 	HANDLE h = CreateMutexA(nullptr, FALSE, "Global\\GMegaUploadMutex");
 	WaitForSingleObject(h, INFINITE);
+#else
+	int fd = open("/tmp/gmegauploadapp.lock", O_CREAT | O_RDWR, 0644);
+	flock(fd, LOCK_EX);
 #endif
 	/* Começando o processamento do MEGA API */
 	static SimpleClientLogger fileLogger(logFilePath, logToStdout);
@@ -240,6 +246,9 @@ int main(int argc, char *argv[]) {
 #ifdef _WIN32
 	ReleaseMutex(h);
 	CloseHandle(h);
+#else
+	flock(fd, LOCK_UN);
+	close(fd);
 #endif
 	return 0;
 }
