@@ -113,11 +113,22 @@ void GListener::onRequestTemporaryError(mega::MegaApi *, mega::MegaRequest *, me
 	std::cout << "***** Temporary error in request: " << error->getErrorString() << std::endl;
 }
 
-void GListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *, mega::MegaError *error) {
+void GListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *mtransf, mega::MegaError *error) {
 	if (error->getErrorCode()) {
 		std::cout << "***** Transfer finished with error: " << error->getErrorString() << std::endl;
 	} else {
-		std::cout << "***** Transfer finished OK" << std::endl;
+		// std::cout << "***** Transfer finished OK: " << mtransf->getPath() << ":" << mtransf->getFileName() <<
+		// std::endl;
+	}
+	// Lets delete the local file:
+	std::error_code ec;
+	bool removed = std::filesystem::remove(mtransf->getPath(), ec);
+	if (ec) {
+		std::cerr << "Delete failed: " << ec.message() << '\n';
+	} else if (removed) {
+		std::cerr << "File " << mtransf->getPath() << " deleted successfully\n";
+	} else {
+		std::cerr << "Delete failed: file " << mtransf->getPath() << " not found\n";
 	}
 	const std::lock_guard<std::mutex> lock(counter_mutex);
 	thread_counter--;
