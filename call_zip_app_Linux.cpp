@@ -14,7 +14,8 @@
 
 std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip_executable,
 														  const std::string *root_path, const std::string *sufix,
-														  const std::vector<std::string> *file_list) {
+														  const std::vector<std::string> *file_list,
+														  size_t split_size) {
 	std::filesystem::path temp_path = std::filesystem::temp_directory_path() / *sufix;
 	while (std::filesystem::exists(temp_path)) {
 		temp_path /= "x";
@@ -30,7 +31,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 	std::vector<std::string> params;
 	params.push_back(*zip_executable);
 	params.emplace_back("a");
-	params.emplace_back("-v10m");
+	params.emplace_back(fmt::format("-v{}b", split_size));
 	params.push_back(zip_file);
 
 	for (const auto &file : *file_list) {

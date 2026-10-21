@@ -14,7 +14,6 @@
 				"--remote_folder",
 				"futurosqlitebackup",
 				"--files",
-
 				"folha_desconto_de_ferias.png",
 				"importacao_arquivo_folha_concluir_processo.png",
 				"importacao_arquivo_folha_final.png",
@@ -24,7 +23,7 @@
 				"Apontamentos_da_ConferenciaV.pdf",
 				"Palno_de_trabalho_ISA_parte_2026.pdf",
 				"Documentos_AAD___Coord_Adm.pdf",
-
+				"--splitsizemegabytes","5",
 				"--sufix",
 				"FOTOS_GABRIEL",
 				"--log_file",
@@ -50,7 +49,9 @@
 				"roszie-graduation-7749218_1920.jpg",
 				"susanne906-dog-5555443_1920q.jpg",
 				"--sufix",
-				"FOTOS_GABRIEL","--log_file", "my_mega_logfile.log"
+				"FOTOS_GABRIEL",
+				"--log_file",
+				"my_mega_logfile.log"
 			]
 		}
 	]

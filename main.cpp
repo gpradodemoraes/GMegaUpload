@@ -97,6 +97,20 @@ std::string read_session_key_from_disk(const std::string &path) {
 	input.close();
 	return key;
 }
+
+int print_usage(const char *argv0, int retval) {
+	fmt::println("");
+	fmt::println("Usage:");
+	fmt::println(
+		"{} --directory /home/user/path/to/root/folder/that/contains/the/files "
+		"--remote_folder sqlitebackup "
+		"--files file001.xlsx file002.png file003.txt file004.db "
+		"--sufix SUFIX_THAT_GOES_BEFORE_THE_DATE_ON_THE_7zip_FILE "
+		"--log_file my_mega_logfile.log "
+		"--splitsizemegabytes 64",
+		argv0);
+	return retval;
+}
 }; // namespace
 
 int main(int argc, char *argv[]) {
@@ -105,19 +119,24 @@ int main(int argc, char *argv[]) {
 	fmt::println("Git: {} {}", GIT_REV, GIT_BRANCH);
 	fmt::println("Build date: {}", build_date);
 
-	constexpr option ceasa_testing_options[] = {
-		{ "files", required_argument, nullptr, 'f' },	 { "directory", required_argument, nullptr, 'd' },
-		{ "sufix", required_argument, nullptr, 's' },	 { "remote_folder", required_argument, nullptr, 'r' },
-		{ "log_file", required_argument, nullptr, 'l' }, { nullptr, 0 }
-	};
+	constexpr option ceasa_testing_options[] = { { "files", required_argument, nullptr, 'f' },
+												 { "directory", required_argument, nullptr, 'd' },
+												 { "sufix", required_argument, nullptr, 's' },
+												 { "remote_folder", required_argument, nullptr, 'r' },
+												 { "log_file", required_argument, nullptr, 'l' },
+												 { "splitsizemegabytes", required_argument, nullptr, 'm' },
+												 { "help", optional_argument, nullptr, 'h' },
+
+												 { nullptr, 0 } };
 	int opt{};
 	int longindex{};
 	std::string directory;
 	std::string sufix;
 	std::string remote_folder;
 	std::string log_file;
+	size_t split_size_megabytes{ 0 };
 	std::vector<std::string> files;
-	while ((opt = getopt_long(argc, argv, "f:d:s:r:", ceasa_testing_options, &longindex)) != -1) {
+	while ((opt = getopt_long(argc, argv, "f:d:s:r:m:h", ceasa_testing_options, &longindex)) != -1) {
 		switch (opt) {
 			case 'd': directory = std::string(optarg); break;
 			case 'f': {
@@ -130,12 +149,24 @@ int main(int argc, char *argv[]) {
 			case 's': sufix = std::string(optarg); break;
 			case 'l': log_file = std::string(optarg); break;
 			case 'r': remote_folder = std::string(optarg); break;
+			case 'm': split_size_megabytes = std::stoul(std::string(optarg)); break;
+			case 'h': return print_usage(argv[0], 0);
 			default: break;
 		}
 	}
 	if (remote_folder.empty()) {
-		remote_folder = "MEGA_uploads";
+		fmt::println(stderr, "Error: --remote_folder is required");
+		return print_usage(argv[0], 1);
 	}
+	if (sufix.empty()) {
+		fmt::println(stderr, "Error: --sufix is required");
+		return print_usage(argv[0], 1);
+	}
+	if (directory.empty()) {
+		fmt::println(stderr, "Error: --directory (root path that contains the files) is required");
+		return print_usage(argv[0], 1);
+	}
+	split_size_megabytes = split_size_megabytes == 0 ? 64 * 1024 * 1024 : split_size_megabytes * 1024 * 1024;
 
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
 	if (!config_file_handler.good()) {
@@ -194,7 +225,7 @@ int main(int argc, char *argv[]) {
 
 	const std::string sevenzip_path = std::string(conf.get_sevenzip_path());
 	std::pair<int, std::unique_ptr<std::string>> zip_result =
-		call_zip_app(&sevenzip_path, &directory, &new_sufix, &files);
+		call_zip_app(&sevenzip_path, &directory, &new_sufix, &files, split_size_megabytes);
 
 	if (zip_result.first != 0) {
 		fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,

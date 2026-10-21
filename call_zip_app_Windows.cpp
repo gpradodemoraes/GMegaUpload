@@ -8,7 +8,8 @@
 
 std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip_executable,
 														  const std::string *root_path, const std::string *sufix,
-														  const std::vector<std::string> *file_list) {
+														  const std::vector<std::string> *file_list,
+														  size_t split_size) {
 	std::filesystem::path temp_path = std::filesystem::temp_directory_path() / *sufix;
 	while (std::filesystem::exists(temp_path)) {
 		temp_path /= "x";
@@ -21,7 +22,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 
 	std::filesystem::path zip_path = temp_path / (*sufix + ".7z");
 	std::string zip_file = { zip_path.u8string() };
-	std::string params = "a -v10m ";
+	std::string params = fmt::format("a -v{}b ", split_size);
 	params.append(zip_file);
 
 	for (const auto &file : *file_list) {
