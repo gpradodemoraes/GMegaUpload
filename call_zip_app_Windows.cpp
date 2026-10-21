@@ -22,7 +22,9 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 
 	std::filesystem::path zip_path = temp_path / (*sufix + ".7z");
 	std::string zip_file = { zip_path.u8string() };
-	std::string params = fmt::format("a -v{}b ", split_size);
+	std::string params = "a ";
+	if (split_size > 0) params.append(fmt::format("-v{}b ", split_size));
+
 	params.append(zip_file);
 
 	for (const auto &file : *file_list) {

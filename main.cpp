@@ -166,7 +166,8 @@ int main(int argc, char *argv[]) {
 		fmt::println(stderr, "Error: --directory (root path that contains the files) is required");
 		return print_usage(argv[0], 1);
 	}
-	split_size_megabytes = split_size_megabytes == 0 ? 64 * 1024 * 1024 : split_size_megabytes * 1024 * 1024;
+
+	split_size_megabytes *= 1024 * 1024;
 
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
 	if (!config_file_handler.good()) {

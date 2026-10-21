@@ -31,7 +31,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 	std::vector<std::string> params;
 	params.push_back(*zip_executable);
 	params.emplace_back("a");
-	params.emplace_back(fmt::format("-v{}b", split_size));
+	if (split_size > 0) params.emplace_back(fmt::format("-v{}b", split_size));
 	params.push_back(zip_file);
 
 	for (const auto &file : *file_list) {
