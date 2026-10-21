@@ -20,9 +20,15 @@
 				"importacao_arquivo_folha_final.png",
 				"importacao_arquivo_folha_selecionar_filial.png",
 				"importacao_arquivo_folha.png",
+				"boleto_09_07_01.pdf",
+				"Apontamentos_da_ConferenciaV.pdf",
+				"Palno_de_trabalho_ISA_parte_2026.pdf",
+				"Documentos_AAD___Coord_Adm.pdf",
 
 				"--sufix",
-				"FOTOS_GABRIEL","--log_file", "my_mega_logfile.log"
+				"FOTOS_GABRIEL",
+				"--log_file",
+				"my_mega_logfile.log"
 			]
 		},
 		{

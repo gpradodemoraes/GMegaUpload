@@ -57,6 +57,7 @@ std::condition_variable fastlogin_cv;
 std::mutex fastlogin_mtx;
 bool fastloginfinshed{ false };
 #include "FastLoginListener.hpp"
+#include <system_error>
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -197,7 +198,7 @@ int main(int argc, char *argv[]) {
 
 	if (zip_result.first != 0) {
 		fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,
-					   fmt::format("Failed to create zip file: {}", *zip_result.second).c_str());
+					   fmt::format("Failed to create zip file temp directory: {}", *zip_result.second).c_str());
 		return 1;
 	}
 	// Check the documentation of MegaApi to know how to enable local caching
@@ -230,6 +231,12 @@ int main(int argc, char *argv[]) {
 	while (!listener.finished) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
+
+	std::error_code errorCode;
+	if (!std::filesystem::remove(mypath, errorCode)) {
+		fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__, errorCode.message().c_str());
+	}
+	// Aqui já é seguro deletar o diretório onde estavam os arquivos zipados
 
 	// Add code here to exercise MegaApi
 	char *sessionKey = megaApi->dumpSession();
