@@ -4,6 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project(GMegaUpload LANGUAGES CXX)
+include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -85,6 +86,20 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 
 	add_dependencies(gmegaupload file_toucher)
 endif()
+
+set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+# Your executable and your own libraries
+install(TARGETS gmegaupload
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(TARGETS libwinc SDKlib      # use the real target names
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# vcpkg shared libraries (symlinks are preserved)
+install(DIRECTORY "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/lib/"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        FILES_MATCHING PATTERN "*.so*")
 
 
 ############################

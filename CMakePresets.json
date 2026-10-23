@@ -65,11 +65,17 @@
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
+		"CMAKE_INSTALL_RPATH": "$ORIGIN/../lib;$ORIGIN",
+		    "CMAKE_INSTALL_PREFIX": "${sourceDir}/dist",
+		    "CMAKE_INSTALL_LIBDIR": "lib",
 				"USE_READLINE": "OFF",
+				"BUILD_SHARED_LIBS": "ON",
 				"CMAKE_C_COMPILER": "gcc",
 				"CMAKE_CXX_COMPILER": "g++",
 				"CMAKE_MAKE_PROGRAM": "ninja",
+				"VCPKG_OVERLAY_TRIPLETS": "triplets",
                 "VCPKG_ROOT": "/home/moraesgp/vcpkg",
+				"VCPKG_TARGET_TRIPLET": "arm64-linux-shared",
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
             }
         }
