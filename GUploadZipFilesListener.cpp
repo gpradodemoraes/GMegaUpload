@@ -1,4 +1,4 @@
-#include "GListener.hpp"
+#include "GUploadZipFilesListener.hpp"
 #include "megaapi.h"
 #include <string>
 #include <system_error>
@@ -35,7 +35,7 @@ class CreateFolderListener : public mega::MegaRequestListener {
 CreateFolderListener create_folder_listener;
 } // namespace
 
-void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e) {
+void GUploadZipFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e) {
 	if (e->getErrorCode() != mega::MegaError::API_OK) {
 		finished = true;
 		return;
@@ -104,16 +104,16 @@ void GListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, 
 }
 
 // Currently, this callback is only valid for the request fetchNodes()
-void GListener::onRequestUpdate(mega::MegaApi *, mega::MegaRequest *request) {
+void GUploadZipFilesListener::onRequestUpdate(mega::MegaApi *, mega::MegaRequest *request) {
 	std::cout << "***** Loading filesystem " << request->getTransferredBytes() << " / " << request->getTotalBytes()
 			  << std::endl;
 }
 
-void GListener::onRequestTemporaryError(mega::MegaApi *, mega::MegaRequest *, mega::MegaError *error) {
+void GUploadZipFilesListener::onRequestTemporaryError(mega::MegaApi *, mega::MegaRequest *, mega::MegaError *error) {
 	std::cout << "***** Temporary error in request: " << error->getErrorString() << std::endl;
 }
 
-void GListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *mtransf, mega::MegaError *error) {
+void GUploadZipFilesListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *mtransf, mega::MegaError *error) {
 	if (error->getErrorCode()) {
 		std::cout << "***** Transfer finished with error: " << error->getErrorString() << std::endl;
 	} else {
@@ -138,16 +138,16 @@ void GListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *mtransf, m
 	}
 }
 
-void GListener::onTransferUpdate(mega::MegaApi *, mega::MegaTransfer *transfer) {
+void GUploadZipFilesListener::onTransferUpdate(mega::MegaApi *, mega::MegaTransfer *transfer) {
 	std::cout << "***** Transfer progress: " << transfer->getTransferredBytes() << "/" << transfer->getTotalBytes()
 			  << std::endl;
 }
 
-void GListener::onTransferTemporaryError(mega::MegaApi *, mega::MegaTransfer *, mega::MegaError *error) {
+void GUploadZipFilesListener::onTransferTemporaryError(mega::MegaApi *, mega::MegaTransfer *, mega::MegaError *error) {
 	std::cout << "***** Temporary error in transfer: " << error->getErrorString() << std::endl;
 }
 
-void GListener::onUsersUpdate(mega::MegaApi *, mega::MegaUserList *users) {
+void GUploadZipFilesListener::onUsersUpdate(mega::MegaApi *, mega::MegaUserList *users) {
 	if (users == NULL) {
 		// Full account reload
 		return;
@@ -155,7 +155,7 @@ void GListener::onUsersUpdate(mega::MegaApi *, mega::MegaUserList *users) {
 	std::cout << "***** There are " << users->size() << " new or updated users in your account" << std::endl;
 }
 
-void GListener::onNodesUpdate(mega::MegaApi *, mega::MegaNodeList *nodes) {
+void GUploadZipFilesListener::onNodesUpdate(mega::MegaApi *, mega::MegaNodeList *nodes) {
 	if (nodes == NULL) {
 		// Full account reload
 		return;
@@ -164,13 +164,13 @@ void GListener::onNodesUpdate(mega::MegaApi *, mega::MegaNodeList *nodes) {
 	std::cout << "***** There are " << nodes->size() << " new or updated node/s in your account" << std::endl;
 }
 
-void GListener::onSetsUpdate(mega::MegaApi *, mega::MegaSetList *sets) {
+void GUploadZipFilesListener::onSetsUpdate(mega::MegaApi *, mega::MegaSetList *sets) {
 	if (sets) {
 		std::cout << "***** There are " << sets->size() << " new or updated Set/s in your account" << std::endl;
 	}
 }
 
-void GListener::onSetElementsUpdate(mega::MegaApi *, mega::MegaSetElementList *elements) {
+void GUploadZipFilesListener::onSetElementsUpdate(mega::MegaApi *, mega::MegaSetElementList *elements) {
 	if (elements) {
 		std::cout << "***** There are " << elements->size() << " new or updated Set-Element/s in your account"
 				  << std::endl;

@@ -37,7 +37,7 @@
 #include <vector>
 #include "config.hpp"
 #include "SimpleClientLogger.hpp"
-#include "GListener.hpp"
+#include "GUploadZipFilesListener.hpp"
 #include <fmt/base.h>
 #include "git_hash.h"
 #include "compiled_with.h"
@@ -238,7 +238,7 @@ int main(int argc, char *argv[]) {
 
 	std::filesystem::path mypath = std::filesystem::path(*zip_result.second);
 
-	GListener listener(&mypath, remote_folder);
+	GUploadZipFilesListener listener(&mypath, remote_folder);
 
 	FastLoginListener fl;
 	{

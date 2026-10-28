@@ -54,7 +54,7 @@ add_subdirectory(third_party/mega-sdk)
 include_directories(getopt/include)
 add_subdirectory(getopt)
 
-set(GMEGAUPLOAD_SRC build_timestamp.cpp SimpleClientLogger.cpp GListener.cpp main.cpp)
+set(GMEGAUPLOAD_SRC build_timestamp.cpp SimpleClientLogger.cpp GUploadZipFilesListener.cpp main.cpp)
 if(WIN32)
 	set(GMEGAUPLOAD_SRC call_zip_app_Windows.cpp ${GMEGAUPLOAD_SRC})
 else()

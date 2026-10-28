@@ -10,7 +10,7 @@
 #include <time.h>
 #include <filesystem>
 
-class GListener : public mega::MegaListener {
+class GUploadZipFilesListener : public mega::MegaListener {
    private:
 	const std::filesystem::path *zip_files_directory;
 	const std::string remote_folder;
@@ -21,7 +21,7 @@ class GListener : public mega::MegaListener {
    public:
 	bool finished{};
 
-	GListener(std::filesystem::path *path, std::string remote_folder)
+	GUploadZipFilesListener(std::filesystem::path *path, std::string remote_folder)
 		: zip_files_directory(path), remote_folder(remote_folder) {};
 
 	virtual void onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e);
