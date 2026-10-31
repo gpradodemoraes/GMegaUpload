@@ -5,6 +5,9 @@
 #include <filesystem>
 #include <mutex>
 #include <iostream>
+#include <fmt/core.h>
+#include "fmt\base.h"
+#include <cstdio>
 
 namespace {
 class CreateFolderListener : public mega::MegaRequestListener {
@@ -175,5 +178,13 @@ void GUploadZipFilesListener::onSetElementsUpdate(mega::MegaApi *, mega::MegaSet
 	if (elements) {
 		std::cout << "***** There are " << elements->size() << " new or updated Set-Element/s in your account"
 				  << std::endl;
+	}
+}
+
+GUploadZipFilesListener::~GUploadZipFilesListener() {
+	fmt::println("DESTRUINDO!!!!!!!");
+	std::error_code errorCode;
+	if (!std::filesystem::remove(*zip_files_directory, errorCode)) {
+		fmt::println(stderr, "Erro deletando diretório no destruidor: {} {}", __FUNCTION__, errorCode.message());
 	}
 }

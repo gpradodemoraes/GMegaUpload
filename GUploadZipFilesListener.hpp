@@ -39,5 +39,6 @@ class GUploadZipFilesListener : public GListener {
 	virtual void onSetsUpdate(mega::MegaApi *, mega::MegaSetList *sets);
 
 	virtual void onSetElementsUpdate(mega::MegaApi *, mega::MegaSetElementList *elements);
+	~GUploadZipFilesListener();
 };
 #endif

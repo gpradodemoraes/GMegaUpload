@@ -283,8 +283,6 @@ int main(int argc, char *argv[]) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
-	std::error_code errorCode;
-
 	fmt::println("PRECISO COLOCAR O CÓDIGO ABAIXO NO DESTRUIDOR!!!!");
 	// if (!std::filesystem::remove(mypath, errorCode)) {
 	// 	fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__, errorCode.message().c_str());
@@ -301,6 +299,7 @@ int main(int argc, char *argv[]) {
 	// megaApi->logout(true, &logoutListener);
 	megaApi->removeListener(listener);
 	delete megaApi;
+	delete listener;
 	mega::MegaApi::removeLoggerObject(&fileLogger);
 	delete sessionKey;
 #ifdef _WIN32
