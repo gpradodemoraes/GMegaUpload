@@ -58,6 +58,7 @@ std::mutex fastlogin_mtx;
 bool fastloginfinshed{ false };
 #include "FastLoginListener.hpp"
 #include <system_error>
+#include "GListener.hpp"
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -102,7 +103,8 @@ int print_usage(const char *argv0, int retval) {
 	fmt::println("");
 	fmt::println("Usage:");
 	fmt::println(
-		"{} --directory /home/user/path/to/root/folder/that/contains/the/files "
+		"{} --action uploadbackup | purgebackups "
+		"--directory /home/user/path/to/root/folder/that/contains/the/files "
 		"--remote_folder sqlitebackup "
 		"--files file001.xlsx file002.png file003.txt file004.db "
 		"--sufix SUFIX_THAT_GOES_BEFORE_THE_DATE_ON_THE_7zip_FILE "
@@ -119,17 +121,18 @@ int main(int argc, char *argv[]) {
 	fmt::println("Git: {} {}", GIT_REV, GIT_BRANCH);
 	fmt::println("Build date: {}", build_date);
 
-	constexpr option ceasa_testing_options[] = { { "files", required_argument, nullptr, 'f' },
+	constexpr option ceasa_testing_options[] = { { "action", required_argument, nullptr, 'a' },
+												 { "files", required_argument, nullptr, 'f' },
 												 { "directory", required_argument, nullptr, 'd' },
 												 { "sufix", required_argument, nullptr, 's' },
 												 { "remote_folder", required_argument, nullptr, 'r' },
 												 { "log_file", required_argument, nullptr, 'l' },
 												 { "splitsizemegabytes", required_argument, nullptr, 'm' },
 												 { "help", optional_argument, nullptr, 'h' },
-
 												 { nullptr, 0 } };
 	int opt{};
 	int longindex{};
+	std::string action;
 	std::string directory;
 	std::string sufix;
 	std::string remote_folder;
@@ -138,6 +141,7 @@ int main(int argc, char *argv[]) {
 	std::vector<std::string> files;
 	while ((opt = getopt_long(argc, argv, "f:d:s:r:m:h", ceasa_testing_options, &longindex)) != -1) {
 		switch (opt) {
+			case 'a': action = std::string(optarg); break;
 			case 'd': directory = std::string(optarg); break;
 			case 'f': {
 				files.emplace_back(optarg);
@@ -154,15 +158,23 @@ int main(int argc, char *argv[]) {
 			default: break;
 		}
 	}
+	if (action.empty()) {
+		fmt::println(stderr, "Error: --action is required");
+		return print_usage(argv[0], 1);
+	}
+	if (action != "uploadbackup" && action != "purgebackups") {
+		fmt::println(stderr, "Error: --action should be either uploadbackup or purgebackups");
+		return print_usage(argv[0], 1);
+	}
 	if (remote_folder.empty()) {
 		fmt::println(stderr, "Error: --remote_folder is required");
 		return print_usage(argv[0], 1);
 	}
-	if (sufix.empty()) {
+	if (action == "uploadbackup" && sufix.empty()) {
 		fmt::println(stderr, "Error: --sufix is required");
 		return print_usage(argv[0], 1);
 	}
-	if (directory.empty()) {
+	if (action == "uploadbackup" && directory.empty()) {
 		fmt::println(stderr, "Error: --directory (root path that contains the files) is required");
 		return print_usage(argv[0], 1);
 	}
@@ -171,8 +183,8 @@ int main(int argc, char *argv[]) {
 
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
 	if (!config_file_handler.good()) {
-		fmt::println("Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
-		fmt::println("Create a config file {} like this:\n{}", gmegauploadconfig::gmegaupload_config_filename,
+		fmt::println(stderr, "Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
+		fmt::println(stderr, "Create a config file {} like this:\n{}", gmegauploadconfig::gmegaupload_config_filename,
 					 gmegauploadconfig::create_config_example());
 		return 1;
 	}
@@ -184,7 +196,8 @@ int main(int argc, char *argv[]) {
 		conf = data.get<gmegauploadconfig::config>();
 
 	} catch (nlohmann::detail::out_of_range &e) {
-		fmt::println("problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename, e.what());
+		fmt::println(stderr, "problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename,
+					 e.what());
 		return 1;
 	}
 
@@ -196,12 +209,6 @@ int main(int argc, char *argv[]) {
 	const char *envStdout = "true"; // colocar "false" para desligar
 	const bool logToStdout =
 		!envStdout || *envStdout == '\0' || (envStdout[0] != '0' && envStdout[0] != 'f' && envStdout[0] != 'F');
-
-	char timestamp[18];
-	getTimestampForFile(timestamp);
-	std::string new_sufix(sufix);
-	new_sufix += "_";
-	new_sufix += timestamp;
 
 	const char *envEmail = conf.get_mega_email();
 	const char *envPassword = conf.get_mega_pwd();
@@ -224,21 +231,33 @@ int main(int argc, char *argv[]) {
 	// fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_INFO, __FUNCTION__,
 	// 			   fmt::format("mega_email {}; mega_pwd {}", envEmail, envPassword).c_str());
 
-	const std::string sevenzip_path = std::string(conf.get_sevenzip_path());
-	std::pair<int, std::unique_ptr<std::string>> zip_result =
-		call_zip_app(&sevenzip_path, &directory, &new_sufix, &files, split_size_megabytes);
+	// std::unique_ptr<	GListener> listener;
+	GListener *listener;
+	if (action == "uploadbackup") {
+		char timestamp[18];
+		getTimestampForFile(timestamp);
+		std::string new_sufix(sufix);
+		new_sufix += "_";
+		new_sufix += timestamp;
 
-	if (zip_result.first != 0) {
-		fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,
-					   fmt::format("Failed to create zip file temp directory: {}", *zip_result.second).c_str());
-		return 1;
+		const std::string sevenzip_path = std::string(conf.get_sevenzip_path());
+		std::pair<int, std::unique_ptr<std::string>> zip_result =
+			call_zip_app(&sevenzip_path, &directory, &new_sufix, &files, split_size_megabytes);
+
+		if (zip_result.first != 0) {
+			fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,
+						   fmt::format("Failed to create zip file temp directory: {}", *zip_result.second).c_str());
+			return 1;
+		}
+		std::unique_ptr<std::filesystem::path> mypath = std::make_unique<std::filesystem::path>(*zip_result.second);
+
+		// listener = std::make_unique<GListener>(static_cast<GListener>(GUploadZipFilesListener(&mypath,
+		// remote_folder)));
+		listener = new GUploadZipFilesListener(std::move(mypath), remote_folder);
 	}
+
 	// Check the documentation of MegaApi to know how to enable local caching
 	mega::MegaApi *megaApi = new mega::MegaApi(APP_KEY, ".", USER_AGENT);
-
-	std::filesystem::path mypath = std::filesystem::path(*zip_result.second);
-
-	GUploadZipFilesListener listener(&mypath, remote_folder);
 
 	FastLoginListener fl;
 	{
@@ -248,7 +267,7 @@ int main(int argc, char *argv[]) {
 		fastlogin_cv.wait(lock, [] { return fastloginfinshed; });
 	}
 	megaApi->removeRequestListener(&fl);
-	megaApi->addListener(&listener);
+	megaApi->addListener(listener);
 	if (fl.isLoginSuccessful()) {
 		megaApi->fetchNodes();
 	} else {
@@ -260,14 +279,16 @@ int main(int argc, char *argv[]) {
 
 	// You can use the main thread to show a GUI or anything else. MegaApi runs in a background
 	// thread.
-	while (!listener.finished) {
+	while (!listener->finished) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
 	std::error_code errorCode;
-	if (!std::filesystem::remove(mypath, errorCode)) {
-		fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__, errorCode.message().c_str());
-	}
+
+	fmt::println("PRECISO COLOCAR O CÓDIGO ABAIXO NO DESTRUIDOR!!!!");
+	// if (!std::filesystem::remove(mypath, errorCode)) {
+	// 	fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__, errorCode.message().c_str());
+	// }
 	// Aqui já é seguro deletar o diretório onde estavam os arquivos zipados
 
 	// Add code here to exercise MegaApi
@@ -278,7 +299,7 @@ int main(int argc, char *argv[]) {
 	// LogoutListener logoutListener;
 	megaApi->localLogout();
 	// megaApi->logout(true, &logoutListener);
-	megaApi->removeListener(&listener);
+	megaApi->removeListener(listener);
 	delete megaApi;
 	mega::MegaApi::removeLoggerObject(&fileLogger);
 	delete sessionKey;

@@ -1,28 +1,24 @@
-#include <chrono>
-#include <cstdio>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
+#ifndef _GUPLOADZIPFILESLISTENER_H_
+#define _GUPLOADZIPFILESLISTENER_H_
 #include <megaapi.h>
 #include <mutex>
 #include <string>
-#include <thread>
-#include <time.h>
 #include <filesystem>
+#include "GListener.hpp"
+#include <memory>
+#include <utility>
 
-class GUploadZipFilesListener : public mega::MegaListener {
+class GUploadZipFilesListener : public GListener {
+   public:
+	GUploadZipFilesListener(std::unique_ptr<std::filesystem::path> path, std::string remote_folder)
+		: zip_files_directory(std::move(path)), remote_folder(remote_folder) {};
+
    private:
-	const std::filesystem::path *zip_files_directory;
+	std::unique_ptr<std::filesystem::path> zip_files_directory;
 	const std::string remote_folder;
 	mega::MegaNode *remote_folder_node = nullptr;
 	std::mutex counter_mutex;
 	int thread_counter = 0;
-
-   public:
-	bool finished{};
-
-	GUploadZipFilesListener(std::filesystem::path *path, std::string remote_folder)
-		: zip_files_directory(path), remote_folder(remote_folder) {};
 
 	virtual void onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e);
 
@@ -44,3 +40,4 @@ class GUploadZipFilesListener : public mega::MegaListener {
 
 	virtual void onSetElementsUpdate(mega::MegaApi *, mega::MegaSetElementList *elements);
 };
+#endif

@@ -4,6 +4,7 @@
 #include <system_error>
 #include <filesystem>
 #include <mutex>
+#include <iostream>
 
 namespace {
 class CreateFolderListener : public mega::MegaRequestListener {

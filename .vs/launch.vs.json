@@ -9,6 +9,8 @@
 			"name": "gmegaupload.exe (bin\\Debug\\gmegaupload.exe)",
 			"cwd": "",
 			"args": [
+				"--action",
+				"uploadbackup",
 				"--directory",
 				"${env.TEMP}\\testando",
 				"--remote_folder",
@@ -23,7 +25,8 @@
 				"Apontamentos_da_ConferenciaV.pdf",
 				"Palno_de_trabalho_ISA_parte_2026.pdf",
 				"Documentos_AAD___Coord_Adm.pdf",
-				"--splitsizemegabytes","5",
+				"--splitsizemegabytes",
+				"5",
 				"--sufix",
 				"FOTOS_GABRIEL",
 				"--log_file",
