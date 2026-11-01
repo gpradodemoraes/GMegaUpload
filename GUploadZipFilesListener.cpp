@@ -51,30 +51,36 @@ void GUploadZipFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequ
 			break;
 		}
 		case mega::MegaRequest::TYPE_FETCH_NODES: {
-			std::cout << "***** Showing files/folders in the root folder:" << std::endl;
-			mega::MegaNode *root = api->getRootNode();
-			mega::MegaNodeList *list = api->getChildren(root);
-			bool remote_folder_found = false;
-			for (int i = 0; i < list->size(); i++) {
-				mega::MegaNode *node = list->get(i);
-				if (node->isFile()) continue;
-				if (node->getName() == remote_folder) {
-					std::cout << "*****   WE FOUND HIM! : ";
-					std::cout << node->getName() << std::endl;
-					remote_folder_node = node->copy();
-					remote_folder_found = true;
-					break;
+			fmt::println("***** Showing files/folders in the root folder:");
+			remote_folder_node = api->getRootNode();
+			int remote_folder_found{ 0 };
+			int counter{ 0 };
+			for (const auto &directory : *remote_folders) {
+				if (counter > remote_folder_found) break;
+				counter++;
+
+				mega::MegaNodeList *list = api->getChildren(remote_folder_node);
+				for (int i = 0; i < list->size(); i++) {
+					mega::MegaNode *node = list->get(i);
+					if (node->isFile()) continue;
+					if (node->getName() == directory) {
+						fmt::println("*****   WE FOUND HIM! : {}", node->getName());
+						delete remote_folder_node;
+						remote_folder_node = node->copy();
+						remote_folder_found++;
+						delete list;
+						break;
+					}
 				}
 			}
-			std::cout << "***** Done" << std::endl;
 
-			delete list;
-			if (!remote_folder_found) {
-				create_folder_listener.root = root;
-				api->createFolder(remote_folder.c_str(), root, &create_folder_listener);
+			if (remote_folder_found < (*remote_folders).size()) {
+				// remote folder not found, create it
+				create_folder_listener.root = remote_folder_node;
+				api->createFolder((*remote_folders)[remote_folder_found].c_str(), remote_folder_node,
+								  &create_folder_listener);
 				break;
 			}
-			if (root) delete root;
 
 			if (zip_files_directory == nullptr) {
 				std::cerr << "Directory pointer is null\n";

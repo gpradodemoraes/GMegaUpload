@@ -7,15 +7,16 @@
 #include "GListener.hpp"
 #include <memory>
 #include <utility>
+#include <vector>
 
 class GUploadZipFilesListener : public GListener {
    public:
-	GUploadZipFilesListener(std::unique_ptr<std::filesystem::path> path, std::string remote_folder)
-		: zip_files_directory(std::move(path)), remote_folder(remote_folder) {};
+	GUploadZipFilesListener(std::unique_ptr<std::filesystem::path> path, const std::vector<std::string> *remote_folders)
+		: zip_files_directory(std::move(path)), remote_folders(remote_folders) {};
 
    private:
 	std::unique_ptr<std::filesystem::path> zip_files_directory;
-	const std::string remote_folder;
+	const std::vector<std::string> *remote_folders;
 	mega::MegaNode *remote_folder_node = nullptr;
 	std::mutex counter_mutex;
 	int thread_counter = 0;

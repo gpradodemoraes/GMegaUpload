@@ -106,7 +106,7 @@ int print_usage(const char *argv0, int retval) {
 	fmt::println(
 		"{} --action uploadbackup | purgebackups "
 		"--directory /home/user/path/to/root/folder/that/contains/the/files "
-		"--remote_folder sqlitebackup "
+		"--remote_folder list of folders in path MEGA sqlitebackup "
 		"--files file001.xlsx file002.png file003.txt file004.db "
 		"--sufix SUFIX_THAT_GOES_BEFORE_THE_DATE_ON_THE_7zip_FILE "
 		"--log_file my_mega_logfile.log "
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
 	std::string action;
 	std::string directory;
 	std::string sufix;
-	std::string remote_folder;
+	std::vector<std::string> remote_folder;
 	std::string log_file;
 	size_t split_size_megabytes{ 0 };
 	std::vector<std::string> files;
@@ -153,7 +153,13 @@ int main(int argc, char *argv[]) {
 			} break;
 			case 's': sufix = std::string(optarg); break;
 			case 'l': log_file = std::string(optarg); break;
-			case 'r': remote_folder = std::string(optarg); break;
+			case 'r': {
+				remote_folder.emplace_back(optarg);
+				while (optind < argc && argv[optind][0] != '-') {
+					remote_folder.emplace_back(argv[optind]);
+					optind++;
+				}
+			} break;
 			case 'm': split_size_megabytes = std::stoul(std::string(optarg)); break;
 			case 'h': return print_usage(argv[0], 0);
 			default: break;
@@ -254,9 +260,9 @@ int main(int argc, char *argv[]) {
 
 		// listener = std::make_unique<GListener>(static_cast<GListener>(GUploadZipFilesListener(&mypath,
 		// remote_folder)));
-		listener = new GUploadZipFilesListener(std::move(mypath), remote_folder);
+		listener = new GUploadZipFilesListener(std::move(mypath), &remote_folder);
 	} else if (action == "purgebackups") {
-		listener = new GDeleteExcessiveFilesListener(conf.get_dir_structure_pointer());
+		listener = new GDeleteExcessiveFilesListener(&remote_folder);
 	} else {
 		fmt::println(stderr, "could not find an option for action = {}", action);
 		return 1;
