@@ -5,6 +5,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include "nlohmann/detail/macro_scope.hpp"
+#include <vector>
 
 namespace gmegauploadconfig {
 class config {
@@ -13,9 +14,10 @@ class config {
 	std::string mega_pwd;
 	std::string sevenzip_path;
 	std::string session_key_file;
+	std::vector<std::string> dir_structure;
 
    public:
-	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd, sevenzip_path, session_key_file)
+	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd, sevenzip_path, session_key_file, dir_structure)
 
 	char *get_mega_email() { return (char *)mega_email.c_str(); }
 
@@ -24,6 +26,8 @@ class config {
 	char *get_sevenzip_path() { return (char *)sevenzip_path.c_str(); }
 
 	char *get_session_key_file() { return (char *)session_key_file.c_str(); }
+
+	std::vector<std::string> *get_dir_structure_pointer() { return &dir_structure; }
 };
 
 // inline constexpr const char *identity_url = "https://identity.api.rackspacecloud.com/v2.0/tokens";

@@ -38,6 +38,7 @@
 #include "config.hpp"
 #include "SimpleClientLogger.hpp"
 #include "GUploadZipFilesListener.hpp"
+#include "GDeleteExcessiveFilesListener.hpp"
 #include <fmt/base.h>
 #include "git_hash.h"
 #include "compiled_with.h"
@@ -232,7 +233,7 @@ int main(int argc, char *argv[]) {
 	// 			   fmt::format("mega_email {}; mega_pwd {}", envEmail, envPassword).c_str());
 
 	// std::unique_ptr<	GListener> listener;
-	GListener *listener;
+	GListener *listener = nullptr;
 	if (action == "uploadbackup") {
 		char timestamp[18];
 		getTimestampForFile(timestamp);
@@ -254,6 +255,11 @@ int main(int argc, char *argv[]) {
 		// listener = std::make_unique<GListener>(static_cast<GListener>(GUploadZipFilesListener(&mypath,
 		// remote_folder)));
 		listener = new GUploadZipFilesListener(std::move(mypath), remote_folder);
+	} else if (action == "purgebackups") {
+		listener = new GDeleteExcessiveFilesListener(conf.get_dir_structure_pointer());
+	} else {
+		fmt::println(stderr, "could not find an option for action = {}", action);
+		return 1;
 	}
 
 	// Check the documentation of MegaApi to know how to enable local caching
@@ -283,13 +289,6 @@ int main(int argc, char *argv[]) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
-	fmt::println("PRECISO COLOCAR O CÓDIGO ABAIXO NO DESTRUIDOR!!!!");
-	// if (!std::filesystem::remove(mypath, errorCode)) {
-	// 	fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__, errorCode.message().c_str());
-	// }
-	// Aqui já é seguro deletar o diretório onde estavam os arquivos zipados
-
-	// Add code here to exercise MegaApi
 	char *sessionKey = megaApi->dumpSession();
 
 	write_session_key_to_disk(sessionKey, conf.get_session_key_file());

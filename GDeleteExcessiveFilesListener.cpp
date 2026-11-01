@@ -1,6 +1,8 @@
 #include "GDeleteExcessiveFilesListener.hpp"
 #include "megaapi.h"
 #include <string>
+#include <fmt/base.h>
+#include <vector>
 
 void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request,
 													mega::MegaError *e) {
@@ -15,27 +17,37 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 			break;
 		}
 		case mega::MegaRequest::TYPE_FETCH_NODES: {
-			std::cout << "***** Showing files/folders in the root folder:" << std::endl;
-			mega::MegaNode *root = api->getRootNode();
-			mega::MegaNodeList *list = api->getChildren(root);
-			bool remote_folder_found = false;
-			for (int i = 0; i < list->size(); i++) {
-				mega::MegaNode *node = list->get(i);
-				if (node->isFile()) continue;
-				if (node->getName() == remote_folder) {
-					std::cout << "*****   WE FOUND HIM! : ";
-					std::cout << node->getName() << std::endl;
-					remote_folder_node = node->copy();
-					remote_folder_found = true;
-					break;
+			fmt::println("***** Showing files/folders in the root folder:");
+			remote_folder_node = api->getRootNode();
+			int remote_folder_found{ 0 };
+			for (const auto &directory : *dir_structure) {
+				mega::MegaNodeList *list = api->getChildren(remote_folder_node);
+				for (int i = 0; i < list->size(); i++) {
+					mega::MegaNode *node = list->get(i);
+					if (node->isFile()) continue;
+					if (node->getName() == directory) {
+						fmt::println("*****   WE FOUND HIM! : {}", node->getName());
+						delete remote_folder_node;
+						remote_folder_node = node->copy();
+						remote_folder_found++;
+						delete list;
+						break;
+					}
 				}
 			}
 
-			delete list;
-			if (!remote_folder_found) {
+			if (remote_folder_found < (*dir_structure).size()) {
 				break;
 			}
-			if (root) delete root;
+
+			std::vector<std::string> fileslist;
+			mega::MegaNodeList *files = api->getChildren(remote_folder_node);
+			for (int i = 0; i < files->size(); i++) {
+				mega::MegaNode *node = files->get(i);
+				if (node->isFile()) fileslist.emplace_back(node->getName());
+			}
+
+			delete files;
 
 			break;
 		}

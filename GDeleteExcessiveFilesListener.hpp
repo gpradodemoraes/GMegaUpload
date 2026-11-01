@@ -12,13 +12,15 @@
 #include <time.h>
 #include <filesystem>
 #include "GListener.hpp"
+#include <vector>
 
 class GDeleteExcessiveFilesListener : public GListener {
-   private:
-	const std::string remote_folder;
-	mega::MegaNode *remote_folder_node = nullptr;
+   public:
+	GDeleteExcessiveFilesListener(const std::vector<std::string> *remote_folder) : dir_structure(remote_folder) {};
 
-	GDeleteExcessiveFilesListener(std::string remote_folder) : remote_folder(remote_folder) {};
+   private:
+	const std::vector<std::string> *dir_structure;
+	mega::MegaNode *remote_folder_node = nullptr;
 
 	virtual void onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e);
 
