@@ -3,6 +3,7 @@
 #include <string>
 #include <fmt/base.h>
 #include <vector>
+#include <cstdio>
 
 void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request,
 													mega::MegaError *e) {
@@ -37,6 +38,9 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 			}
 
 			if (remote_folder_found < (*dir_structure).size()) {
+				finished = true;
+				fmt::println(stderr, "Error: Could not find the remote folder structure in MEGA: {}",
+							 (*dir_structure)[remote_folder_found]);
 				break;
 			}
 
