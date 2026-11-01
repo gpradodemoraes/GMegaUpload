@@ -60,6 +60,7 @@ bool fastloginfinshed{ false };
 #include "FastLoginListener.hpp"
 #include <system_error>
 #include "GListener.hpp"
+#include <exception>
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -203,6 +204,10 @@ int main(int argc, char *argv[]) {
 		conf = data.get<gmegauploadconfig::config>();
 
 	} catch (nlohmann::detail::out_of_range &e) {
+		fmt::println(stderr, "problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename,
+					 e.what());
+		return 1;
+	} catch (std::exception &e) {
 		fmt::println(stderr, "problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename,
 					 e.what());
 		return 1;

@@ -5,6 +5,7 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include "nlohmann/detail/macro_scope.hpp"
+#include <map>
 
 namespace gmegauploadconfig {
 class config {
@@ -13,9 +14,10 @@ class config {
 	std::string mega_pwd;
 	std::string sevenzip_path;
 	std::string session_key_file;
+	std::map<std::string, int> excessive_files_rules;
 
    public:
-	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd, sevenzip_path, session_key_file)
+	NLOHMANN_DEFINE_TYPE_INTRUSIVE(config, mega_email, mega_pwd, sevenzip_path, session_key_file, excessive_files_rules)
 
 	char *get_mega_email() { return (char *)mega_email.c_str(); }
 
@@ -40,6 +42,8 @@ std::string create_config_example() {
 	data["mega_pwd"] = "your_password";
 	data["sevenzip_path"] = "C:\\Program Files\\7-Zip\\7z.exe";
 	data["session_key_file"] = "megaupload_session_key_file.txt";
+	data["excessive_files_rules"] = { { "FOTOS_GABRIEL", 3 }, { "SWARTE_KRANT", 5 }, { "MYINVESTMENTS_BACKUP", 10 } };
+
 	return data.dump(4);
 }
 

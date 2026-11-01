@@ -13,14 +13,18 @@
 #include <filesystem>
 #include "GListener.hpp"
 #include <vector>
+#include <map>
 
 class GDeleteExcessiveFilesListener : public GListener {
    public:
-	GDeleteExcessiveFilesListener(const std::vector<std::string> *remote_folder) : dir_structure(remote_folder) {};
+	GDeleteExcessiveFilesListener(const std::vector<std::string> *remote_folder,
+								  const std::map<std::string, int> *excessive_rules)
+		: dir_structure(remote_folder), excessive_files_rules(excessive_rules) {};
 
    private:
 	const std::vector<std::string> *dir_structure;
 	mega::MegaNode *remote_folder_node = nullptr;
+	const std::map<std::string, int> *excessive_files_rules;
 
 	virtual void onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request, mega::MegaError *e);
 
