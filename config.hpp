@@ -26,6 +26,8 @@ class config {
 	char *get_sevenzip_path() { return (char *)sevenzip_path.c_str(); }
 
 	char *get_session_key_file() { return (char *)session_key_file.c_str(); }
+
+	std::map<std::string, int> *get_excessive_files_rules() { return &excessive_files_rules; }
 };
 
 // inline constexpr const char *identity_url = "https://identity.api.rackspacecloud.com/v2.0/tokens";

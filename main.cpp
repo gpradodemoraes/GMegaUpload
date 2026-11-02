@@ -267,7 +267,7 @@ int main(int argc, char *argv[]) {
 		// remote_folder)));
 		listener = new GUploadZipFilesListener(std::move(mypath), &remote_folder);
 	} else if (action == "purgebackups") {
-		listener = new GDeleteExcessiveFilesListener(&remote_folder);
+		listener = new GDeleteExcessiveFilesListener(&remote_folder, conf.get_excessive_files_rules());
 	} else {
 		fmt::println(stderr, "could not find an option for action = {}", action);
 		return 1;

@@ -4,6 +4,8 @@
 #include <fmt/base.h>
 #include <vector>
 #include <cstdio>
+#include <regex>
+#include <map>
 
 void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request,
 													mega::MegaError *e) {
@@ -44,15 +46,45 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 				break;
 			}
 
-			std::vector<std::string> fileslist;
+			std::vector<std::string> filesList;
 			mega::MegaNodeList *files = api->getChildren(remote_folder_node);
 			for (int i = 0; i < files->size(); i++) {
 				mega::MegaNode *node = files->get(i);
-				if (node->isFile()) fileslist.emplace_back(node->getName());
+				if (node->isFile()) filesList.emplace_back(node->getName());
 			}
-
 			delete files;
 
+			std::map<std::string, std::map<std::string, std::vector<std::string>>> ordered_results;
+			std::regex regex_pattern(R"((\d{4}-\d{2}-\d{2}-\d{6}))");
+			for (const auto &file : filesList) {
+				for (const auto &[key, value] : *excessive_files_rules) {
+					if (file.rfind(key, 0) == 0) {
+						std::smatch match;
+						if (std::regex_search(file, match, regex_pattern)) {
+							if (ordered_results.find(key) == ordered_results.end()) {
+								ordered_results[key] = std::map<std::string, std::vector<std::string>>();
+								ordered_results[key].insert({ match[1], { file } });
+							} else {
+								ordered_results[key][match[1]].push_back(file);
+							}
+						}
+					}
+				}
+			}
+
+			for (const auto &[key, max_lists_to_keep] : *excessive_files_rules) {
+				int count{ 0 };
+				int size = static_cast<int>(ordered_results[key].size());
+				for (const auto &[k, list_of_files] : ordered_results[key]) {
+					if (count < size - max_lists_to_keep) {
+						for (const auto &file : list_of_files) {
+							fmt::println("DELETE THIS: {}", file);
+						}
+						count++;
+					}
+				}
+			}
+			finished = true;
 			break;
 		}
 		default: break;
