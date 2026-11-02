@@ -14,6 +14,7 @@
 #include "GListener.hpp"
 #include <vector>
 #include <map>
+#include <atomic>
 
 class GDeleteExcessiveFilesListener : public GListener {
    public:
@@ -22,6 +23,7 @@ class GDeleteExcessiveFilesListener : public GListener {
 		: dir_structure(remote_folder), excessive_files_rules(excessive_rules) {};
 
    private:
+	std::atomic<int> delete_file_counter{ 0 };
 	const std::vector<std::string> *dir_structure;
 	mega::MegaNode *remote_folder_node = nullptr;
 	const std::map<std::string, int> *excessive_files_rules;

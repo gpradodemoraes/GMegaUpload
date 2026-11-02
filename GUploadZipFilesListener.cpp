@@ -6,7 +6,7 @@
 #include <mutex>
 #include <iostream>
 #include <fmt/core.h>
-#include "fmt\base.h"
+#include "fmt/base.h"
 #include <cstdio>
 
 namespace {

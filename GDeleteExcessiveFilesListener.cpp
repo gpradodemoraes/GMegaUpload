@@ -19,6 +19,11 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 			api->fetchNodes();
 			break;
 		}
+		case mega::MegaRequest::TYPE_REMOVE: {
+			delete_file_counter.fetch_sub(1, std::memory_order_acquire);
+			if (delete_file_counter.load() == 0) finished = true;
+			break;
+		}
 		case mega::MegaRequest::TYPE_FETCH_NODES: {
 			fmt::println("***** Showing files/folders in the root folder:");
 			remote_folder_node = api->getRootNode();
@@ -79,12 +84,14 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 					if (count < size - max_lists_to_keep) {
 						for (const auto &file : list_of_files) {
 							fmt::println("DELETE THIS: {}", file);
+							delete_file_counter.fetch_add(1, std::memory_order_acquire);
+							api->remove(api->getChildNode(remote_folder_node, file.c_str()));
 						}
 						count++;
 					}
 				}
 			}
-			finished = true;
+			if (delete_file_counter.load() == 0) finished = true;
 			break;
 		}
 		default: break;
