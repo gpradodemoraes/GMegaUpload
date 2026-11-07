@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <fmt/base.h>
 #include <fmt/format.h>
 #include <string>
 #include <utility>
@@ -10,7 +11,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
-#include <fmt/base.h>
+#include <spdlog/spdlog.h>
 
 std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip_executable,
 														  const std::string *root_path, const std::string *sufix,
