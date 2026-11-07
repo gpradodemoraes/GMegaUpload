@@ -13,7 +13,7 @@ class CreateFolderListener : public mega::MegaRequestListener {
 	mega::MegaNode *root = nullptr;
 
 	void onRequestStart([[maybe_unused]] mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request) override {
-		std::cout << "***** Folder create start" << std::endl;
+		SPDLOG_INFO("***** Folder create start");
 	}
 
 	void onRequestFinish(mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request, mega::MegaError *e) override {
@@ -22,15 +22,15 @@ class CreateFolderListener : public mega::MegaRequestListener {
 			root = nullptr;
 		}
 		if (e->getErrorCode() != mega::MegaError::API_OK) {
-			std::cout << "***** Error creating folder: " << e->getErrorString() << std::endl;
+			SPDLOG_INFO("***** Error creating folder: {}", e->getErrorString());
 			return;
 		}
-		std::cout << "***** Folder created successfully" << std::endl;
+		SPDLOG_INFO("***** Folder created successfully");
 		api->fetchNodes();
 	}
 
 	void onRequestUpdate([[maybe_unused]] mega::MegaApi *api, [[maybe_unused]] mega::MegaRequest *request) override {
-		std::cout << "***** Folder create update" << std::endl;
+		SPDLOG_INFO("***** Folder create update");
 	}
 };
 
@@ -98,7 +98,7 @@ void GUploadZipFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequ
 			for (const std::filesystem::directory_entry &entry :
 				 std::filesystem::directory_iterator(*zip_files_directory, ec)) {
 				if (entry.is_regular_file()) {
-					std::cout << "***** Uploading " << entry.path().filename().string() << '\n';
+					SPDLOG_INFO("***** Uploading {}", entry.path().filename().string());
 					mega::MegaUploadOptions uploadOptions;
 					uploadOptions.mtime = 0;
 					api->startUpload(entry.path().string(), remote_folder_node, nullptr, &uploadOptions, nullptr);
@@ -113,19 +113,19 @@ void GUploadZipFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequ
 
 // Currently, this callback is only valid for the request fetchNodes()
 void GUploadZipFilesListener::onRequestUpdate(mega::MegaApi *, mega::MegaRequest *request) {
-	std::cout << "***** Loading filesystem " << request->getTransferredBytes() << " / " << request->getTotalBytes()
-			  << std::endl;
+	SPDLOG_INFO("***** Loading filesystem {}: {} / {}", request->getRequestString(), request->getTransferredBytes(),
+				request->getTotalBytes());
 }
 
 void GUploadZipFilesListener::onRequestTemporaryError(mega::MegaApi *, mega::MegaRequest *, mega::MegaError *error) {
-	std::cout << "***** Temporary error in request: " << error->getErrorString() << std::endl;
+	SPDLOG_INFO("***** Temporary error in request: {}", error->getErrorString());
 }
 
 void GUploadZipFilesListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *mtransf, mega::MegaError *error) {
 	if (error->getErrorCode()) {
-		std::cout << "***** Transfer finished with error: " << error->getErrorString() << std::endl;
+		SPDLOG_INFO("***** Transfer finished with error: {}", error->getErrorString());
 	} else {
-		// std::cout << "***** Transfer finished OK: " << mtransf->getPath() << ":" << mtransf->getFileName() <<
+		// SPDLOG_INFO("***** Transfer finished OK: " << mtransf->getPath() << ":" << mtransf->getFileName() <<
 		// std::endl;
 	}
 	// Lets delete the local file:
@@ -147,12 +147,11 @@ void GUploadZipFilesListener::onTransferFinish(mega::MegaApi *, mega::MegaTransf
 }
 
 void GUploadZipFilesListener::onTransferUpdate(mega::MegaApi *, mega::MegaTransfer *transfer) {
-	std::cout << "***** Transfer progress: " << transfer->getTransferredBytes() << "/" << transfer->getTotalBytes()
-			  << std::endl;
+	SPDLOG_INFO("***** Transfer progress: {} / {}", transfer->getTransferredBytes(), transfer->getTotalBytes());
 }
 
 void GUploadZipFilesListener::onTransferTemporaryError(mega::MegaApi *, mega::MegaTransfer *, mega::MegaError *error) {
-	std::cout << "***** Temporary error in transfer: " << error->getErrorString() << std::endl;
+	SPDLOG_INFO("***** Temporary error in transfer: {}", error->getErrorString());
 }
 
 void GUploadZipFilesListener::onUsersUpdate(mega::MegaApi *, mega::MegaUserList *users) {
@@ -160,7 +159,7 @@ void GUploadZipFilesListener::onUsersUpdate(mega::MegaApi *, mega::MegaUserList 
 		// Full account reload
 		return;
 	}
-	std::cout << "***** There are " << users->size() << " new or updated users in your account" << std::endl;
+	SPDLOG_INFO("***** There are {} new or updated users in your account", users->size());
 }
 
 void GUploadZipFilesListener::onNodesUpdate(mega::MegaApi *, mega::MegaNodeList *nodes) {
@@ -169,19 +168,18 @@ void GUploadZipFilesListener::onNodesUpdate(mega::MegaApi *, mega::MegaNodeList 
 		return;
 	}
 
-	std::cout << "***** There are " << nodes->size() << " new or updated node/s in your account" << std::endl;
+	SPDLOG_INFO("***** There are {} new or updated node/s in your account", nodes->size());
 }
 
 void GUploadZipFilesListener::onSetsUpdate(mega::MegaApi *, mega::MegaSetList *sets) {
 	if (sets) {
-		std::cout << "***** There are " << sets->size() << " new or updated Set/s in your account" << std::endl;
+		SPDLOG_INFO("***** There are {} new or updated Set/s in your account", sets->size());
 	}
 }
 
 void GUploadZipFilesListener::onSetElementsUpdate(mega::MegaApi *, mega::MegaSetElementList *elements) {
 	if (elements) {
-		std::cout << "***** There are " << elements->size() << " new or updated Set-Element/s in your account"
-				  << std::endl;
+		SPDLOG_INFO("***** There are {} new or updated Set-Element/s in your account", elements->size());
 	}
 }
 

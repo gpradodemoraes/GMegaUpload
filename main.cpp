@@ -127,9 +127,11 @@ int main(int argc, char *argv[]) {
 #if defined(_DEBUG) || defined(DEBUG)
 	auto the_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	the_sink->set_pattern("[%H:%M:%S.%e] [%^%-8l%$] %v [%s:%#]");
+	const bool logToStdout = true;
 #else
 	auto the_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("GMegaUpload.log", true);
 	the_sink->set_pattern("[%H:%M:%S.%e] [%-8l] %v [%s:%#]");
+	const bool logToStdout = false;
 #endif
 	the_sink->set_level(spdlog::level::trace);
 	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("my_sink", the_sink);
@@ -234,15 +236,10 @@ int main(int argc, char *argv[]) {
 
 	const std::string logFilePath = log_file.empty() ? "" : log_file;
 
-	// Tee logs to stdout by default. Disable with MEGA_LOG_STDOUT=0 (or =false).
-	const char *envStdout = "true"; // colocar "false" para desligar
-	const bool logToStdout =
-		!envStdout || *envStdout == '\0' || (envStdout[0] != '0' && envStdout[0] != 'f' && envStdout[0] != 'F');
-
 	const char *envEmail = conf.get_mega_email();
 	const char *envPassword = conf.get_mega_pwd();
 	if (!envEmail || !*envEmail || !envPassword || !*envPassword) {
-		std::cerr << "Set the MEGA_EMAIL and MEGA_PWD environment variables before running." << std::endl;
+		SPDLOG_ERROR("Set the MEGA_EMAIL and MEGA_PWD environment variables before running.");
 		return 1;
 	}
 #ifdef _WIN32

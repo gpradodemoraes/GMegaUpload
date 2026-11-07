@@ -10,7 +10,7 @@
 			"cwd": "",
 			"args": [
 				"--action",
-				"purgebackups",
+				"uploadbackup",
 				"--directory",
 				"${env.TEMP}\\testando",
 				"--remote_folder",

@@ -100,32 +100,31 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 
 // Currently, this callback is only valid for the request fetchNodes()
 void GDeleteExcessiveFilesListener::onRequestUpdate(mega::MegaApi *, mega::MegaRequest *request) {
-	std::cout << "***** Loading filesystem " << request->getTransferredBytes() << " / " << request->getTotalBytes()
-			  << std::endl;
+	SPDLOG_INFO("***** Loading filesystem {}: {} / {}", request->getRequestString(), request->getTransferredBytes(),
+				request->getTotalBytes());
 }
 
 void GDeleteExcessiveFilesListener::onRequestTemporaryError(mega::MegaApi *, mega::MegaRequest *,
 															mega::MegaError *error) {
-	std::cout << "***** Temporary error in request: " << error->getErrorString() << std::endl;
+	SPDLOG_INFO("***** Temporary error in request: {}", error->getErrorString());
 }
 
 void GDeleteExcessiveFilesListener::onTransferFinish(mega::MegaApi *, mega::MegaTransfer *mtransf,
 													 mega::MegaError *error) {
 	if (error->getErrorCode()) {
-		std::cout << "***** Transfer finished with error: " << error->getErrorString() << std::endl;
+		SPDLOG_INFO("***** Transfer finished with error: {}", error->getErrorString());
 	} else {
-		std::cout << "***** Transfer finished OK: " << mtransf->getPath() << ":" << mtransf->getFileName() << std::endl;
+		SPDLOG_INFO("***** Transfer finished OK: {}: {}", mtransf->getPath(), mtransf->getFileName());
 	}
 }
 
 void GDeleteExcessiveFilesListener::onTransferUpdate(mega::MegaApi *, mega::MegaTransfer *transfer) {
-	std::cout << "***** Transfer progress: " << transfer->getTransferredBytes() << "/" << transfer->getTotalBytes()
-			  << std::endl;
+	SPDLOG_INFO("***** Transfer progress: {} / {}", transfer->getTransferredBytes(), transfer->getTotalBytes());
 }
 
 void GDeleteExcessiveFilesListener::onTransferTemporaryError(mega::MegaApi *, mega::MegaTransfer *,
 															 mega::MegaError *error) {
-	std::cout << "***** Temporary error in transfer: " << error->getErrorString() << std::endl;
+	SPDLOG_INFO("***** Temporary error in transfer: {}", error->getErrorString());
 }
 
 void GDeleteExcessiveFilesListener::onUsersUpdate(mega::MegaApi *, mega::MegaUserList *users) {
@@ -133,7 +132,7 @@ void GDeleteExcessiveFilesListener::onUsersUpdate(mega::MegaApi *, mega::MegaUse
 		// Full account reload
 		return;
 	}
-	std::cout << "***** There are " << users->size() << " new or updated users in your account" << std::endl;
+	SPDLOG_INFO("***** There are {} new or updated users in your account", users->size());
 }
 
 void GDeleteExcessiveFilesListener::onNodesUpdate(mega::MegaApi *, mega::MegaNodeList *nodes) {
@@ -142,18 +141,17 @@ void GDeleteExcessiveFilesListener::onNodesUpdate(mega::MegaApi *, mega::MegaNod
 		return;
 	}
 
-	std::cout << "***** There are " << nodes->size() << " new or updated node/s in your account" << std::endl;
+	SPDLOG_INFO("***** There are {} new or updated node/s in your account", nodes->size());
 }
 
 void GDeleteExcessiveFilesListener::onSetsUpdate(mega::MegaApi *, mega::MegaSetList *sets) {
 	if (sets) {
-		std::cout << "***** There are " << sets->size() << " new or updated Set/s in your account" << std::endl;
+		SPDLOG_INFO("***** There are {} new or updated Set/s in your account", sets->size());
 	}
 }
 
 void GDeleteExcessiveFilesListener::onSetElementsUpdate(mega::MegaApi *, mega::MegaSetElementList *elements) {
 	if (elements) {
-		std::cout << "***** There are " << elements->size() << " new or updated Set-Element/s in your account"
-				  << std::endl;
+		SPDLOG_INFO("***** There are {} new or updated Set-Element/s in your account", elements->size());
 	}
 }
