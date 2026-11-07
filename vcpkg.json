@@ -38,19 +38,19 @@
         }
     },
 	"default-features": [ "use-openssl" ],
-    "dependencies": [
+	"dependencies": [
 		"pkgconf",
-        "fmt",
+		"spdlog",
 		"nlohmann-json",
-        "cryptopp",
-        {
-          "name": "curl",
-          "features": [ "websockets", "zstd" ]
-        },
-        "icu",
-        "libsodium",
-        "sqlite3"
-    ],
+		"cryptopp",
+		{
+			"name": "curl",
+			"features": [ "websockets", "zstd" ]
+		},
+		"icu",
+		"libsodium",
+		"sqlite3"
+	],
     "overrides": [
         {
             "name": "icu",

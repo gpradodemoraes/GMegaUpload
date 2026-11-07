@@ -5,9 +5,7 @@
 #include <filesystem>
 #include <mutex>
 #include <iostream>
-#include <fmt/core.h>
-#include "fmt/base.h"
-#include <cstdio>
+#include <spdlog/spdlog.h>
 
 namespace {
 class CreateFolderListener : public mega::MegaRequestListener {
@@ -51,7 +49,7 @@ void GUploadZipFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequ
 			break;
 		}
 		case mega::MegaRequest::TYPE_FETCH_NODES: {
-			fmt::println("***** Showing files/folders in the root folder:");
+			SPDLOG_INFO("***** Showing files/folders in the root folder:");
 			remote_folder_node = api->getRootNode();
 			int remote_folder_found{ 0 };
 			int counter{ 0 };
@@ -64,7 +62,7 @@ void GUploadZipFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequ
 					mega::MegaNode *node = list->get(i);
 					if (node->isFile()) continue;
 					if (node->getName() == directory) {
-						fmt::println("*****   WE FOUND HIM! : {}", node->getName());
+						SPDLOG_INFO("*****   WE FOUND HIM! : {}", node->getName());
 						delete remote_folder_node;
 						remote_folder_node = node->copy();
 						remote_folder_found++;
@@ -188,9 +186,9 @@ void GUploadZipFilesListener::onSetElementsUpdate(mega::MegaApi *, mega::MegaSet
 }
 
 GUploadZipFilesListener::~GUploadZipFilesListener() {
-	fmt::println("DESTRUINDO!!!!!!!");
+	SPDLOG_INFO("DESTRUINDO!!!!!!!");
 	std::error_code errorCode;
 	if (!std::filesystem::remove(*zip_files_directory, errorCode)) {
-		fmt::println(stderr, "Erro deletando diretório no destruidor: {} {}", __FUNCTION__, errorCode.message());
+		SPDLOG_ERROR("Erro deletando diretório no destruidor: {} {}", __FUNCTION__, errorCode.message());
 	}
 }

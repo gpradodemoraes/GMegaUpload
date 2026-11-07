@@ -1,11 +1,11 @@
 #include "GDeleteExcessiveFilesListener.hpp"
 #include "megaapi.h"
 #include <string>
-#include <fmt/base.h>
 #include <vector>
 #include <cstdio>
 #include <regex>
 #include <map>
+#include <spdlog/spdlog.h>
 
 void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequest *request,
 													mega::MegaError *e) {
@@ -25,7 +25,7 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 			break;
 		}
 		case mega::MegaRequest::TYPE_FETCH_NODES: {
-			fmt::println("***** Showing files/folders in the root folder:");
+			SPDLOG_INFO("***** Showing files/folders in the root folder:");
 			remote_folder_node = api->getRootNode();
 			int remote_folder_found{ 0 };
 			for (const auto &directory : *dir_structure) {
@@ -34,7 +34,7 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 					mega::MegaNode *node = list->get(i);
 					if (node->isFile()) continue;
 					if (node->getName() == directory) {
-						fmt::println("*****   WE FOUND HIM! : {}", node->getName());
+						SPDLOG_INFO("*****   WE FOUND HIM! : {}", node->getName());
 						delete remote_folder_node;
 						remote_folder_node = node->copy();
 						remote_folder_found++;
@@ -46,7 +46,7 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 
 			if (remote_folder_found < (*dir_structure).size()) {
 				finished = true;
-				fmt::println(stderr, "Error: Could not find the remote folder structure in MEGA: {}",
+				SPDLOG_ERROR("Error: Could not find the remote folder structure in MEGA: {}",
 							 (*dir_structure)[remote_folder_found]);
 				break;
 			}
@@ -83,7 +83,7 @@ void GDeleteExcessiveFilesListener::onRequestFinish(mega::MegaApi *api, mega::Me
 				for (const auto &[k, list_of_files] : ordered_results[key]) {
 					if (count < size - max_lists_to_keep) {
 						for (const auto &file : list_of_files) {
-							fmt::println("DELETE THIS: {}", file);
+							SPDLOG_INFO("DELETE THIS: {}", file);
 							delete_file_counter.fetch_add(1, std::memory_order_acquire);
 							api->remove(api->getChildNode(remote_folder_node, file.c_str()));
 						}

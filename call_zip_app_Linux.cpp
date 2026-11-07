@@ -40,7 +40,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 
 	std::vector<char *> myargs;
 	for (auto &s : params) {
-		fmt::println("FMT: {}", s);
+		SPDLOG_INFO("FMT: {}", s);
 		myargs.push_back(s.data());
 	}
 	myargs.push_back(nullptr);
@@ -59,7 +59,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 		execvp(myargs[0], myargs.data());
 
 		// Only reached if execvp failed (e.g. 7z not installed)
-		std::fprintf(stderr, "execvp failed: %s\n", std::strerror(errno));
+		SPDLOG_ERROR("execvp failed: {}", std::strerror(errno));
 		_exit(127);
 	}
 

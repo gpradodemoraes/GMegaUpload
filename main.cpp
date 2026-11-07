@@ -39,7 +39,13 @@
 #include "SimpleClientLogger.hpp"
 #include "GUploadZipFilesListener.hpp"
 #include "GDeleteExcessiveFilesListener.hpp"
-#include <fmt/base.h>
+#include <spdlog/spdlog.h>
+#if defined(_DEBUG) || defined(DEBUG)
+#include <spdlog/sinks/stdout_color_sinks.h>
+#else
+#include <spdlog/sinks/basic_file_sink.h>
+#endif
+#include <spdlog/logger.h>
 #include "git_hash.h"
 #include "compiled_with.h"
 #include "call_zip_app.hpp"
@@ -102,9 +108,9 @@ std::string read_session_key_from_disk(const std::string &path) {
 }
 
 int print_usage(const char *argv0, int retval) {
-	fmt::println("");
-	fmt::println("Usage:");
-	fmt::println(
+	SPDLOG_INFO("");
+	SPDLOG_INFO("Usage:");
+	SPDLOG_INFO(
 		"{} --action uploadbackup | purgebackups "
 		"--directory /home/user/path/to/root/folder/that/contains/the/files "
 		"--remote_folder list of folders in path MEGA sqlitebackup "
@@ -118,10 +124,22 @@ int print_usage(const char *argv0, int retval) {
 }; // namespace
 
 int main(int argc, char *argv[]) {
-	fmt::println("Gabriel's Mega Client");
-	fmt::println("Compiled With: {}", COMPILED_WITH);
-	fmt::println("Git: {} {}", GIT_REV, GIT_BRANCH);
-	fmt::println("Build date: {}", build_date);
+#if defined(_DEBUG) || defined(DEBUG)
+	auto the_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	the_sink->set_pattern("[%H:%M:%S.%e] [%^%-8l%$] %v [%s:%#]");
+#else
+	auto the_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("GMegaUpload.log", true);
+	the_sink->set_pattern("[%H:%M:%S.%e] [%-8l] %v [%s:%#]");
+#endif
+	the_sink->set_level(spdlog::level::trace);
+	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("my_sink", the_sink);
+	spdlog::set_default_logger(logger);
+	spdlog::set_level(spdlog::level::trace);
+
+	SPDLOG_INFO("Gabriel's Mega Client");
+	SPDLOG_INFO("Compiled With: {}", COMPILED_WITH);
+	SPDLOG_INFO("Git: {} {}", GIT_REV, GIT_BRANCH);
+	SPDLOG_INFO("Build date: {}", build_date);
 
 	constexpr option ceasa_testing_options[] = { { "action", required_argument, nullptr, 'a' },
 												 { "files", required_argument, nullptr, 'f' },
@@ -166,24 +184,25 @@ int main(int argc, char *argv[]) {
 			default: break;
 		}
 	}
+
 	if (action.empty()) {
-		fmt::println(stderr, "Error: --action is required");
+		SPDLOG_ERROR("Error: --action is required");
 		return print_usage(argv[0], 1);
 	}
 	if (action != "uploadbackup" && action != "purgebackups") {
-		fmt::println(stderr, "Error: --action should be either uploadbackup or purgebackups");
+		SPDLOG_ERROR("Error: --action should be either uploadbackup or purgebackups");
 		return print_usage(argv[0], 1);
 	}
 	if (remote_folder.empty()) {
-		fmt::println(stderr, "Error: --remote_folder is required");
+		SPDLOG_ERROR("Error: --remote_folder is required");
 		return print_usage(argv[0], 1);
 	}
 	if (action == "uploadbackup" && sufix.empty()) {
-		fmt::println(stderr, "Error: --sufix is required");
+		SPDLOG_ERROR("Error: --sufix is required");
 		return print_usage(argv[0], 1);
 	}
 	if (action == "uploadbackup" && directory.empty()) {
-		fmt::println(stderr, "Error: --directory (root path that contains the files) is required");
+		SPDLOG_ERROR("Error: --directory (root path that contains the files) is required");
 		return print_usage(argv[0], 1);
 	}
 
@@ -191,8 +210,8 @@ int main(int argc, char *argv[]) {
 
 	std::ifstream config_file_handler(gmegauploadconfig::gmegaupload_config_filename);
 	if (!config_file_handler.good()) {
-		fmt::println(stderr, "Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
-		fmt::println(stderr, "Create a config file {} like this:\n{}", gmegauploadconfig::gmegaupload_config_filename,
+		SPDLOG_ERROR("Could not open {}", gmegauploadconfig::gmegaupload_config_filename);
+		SPDLOG_ERROR("Create a config file {} like this:\n{}", gmegauploadconfig::gmegaupload_config_filename,
 					 gmegauploadconfig::create_config_example());
 		return 1;
 	}
@@ -204,12 +223,10 @@ int main(int argc, char *argv[]) {
 		conf = data.get<gmegauploadconfig::config>();
 
 	} catch (nlohmann::detail::out_of_range &e) {
-		fmt::println(stderr, "problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename,
-					 e.what());
+		SPDLOG_ERROR("problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename, e.what());
 		return 1;
 	} catch (std::exception &e) {
-		fmt::println(stderr, "problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename,
-					 e.what());
+		SPDLOG_ERROR("problema extraindo o json de {}: {}", gmegauploadconfig::gmegaupload_config_filename, e.what());
 		return 1;
 	}
 
@@ -269,7 +286,7 @@ int main(int argc, char *argv[]) {
 	} else if (action == "purgebackups") {
 		listener = new GDeleteExcessiveFilesListener(&remote_folder, conf.get_excessive_files_rules());
 	} else {
-		fmt::println(stderr, "could not find an option for action = {}", action);
+		SPDLOG_ERROR("could not find an option for action = {}", action);
 		return 1;
 	}
 
