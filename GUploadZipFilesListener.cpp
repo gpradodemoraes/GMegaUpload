@@ -4,7 +4,6 @@
 #include <system_error>
 #include <filesystem>
 #include <mutex>
-#include <iostream>
 #include <spdlog/spdlog.h>
 
 namespace {
@@ -81,15 +80,18 @@ void GUploadZipFilesListener::onRequestFinish(mega::MegaApi *api, mega::MegaRequ
 			}
 
 			if (zip_files_directory == nullptr) {
-				std::cerr << "Directory pointer is null\n";
+				SPDLOG_ERROR("Directory pointer is null");
 				finished = true;
 				break;
 			}
 
 			std::error_code ec;
 			if (!std::filesystem::is_directory(*zip_files_directory, ec)) {
-				std::cerr << "Not a valid directory: " << *zip_files_directory << (ec ? " (" + ec.message() + ")" : "")
-						  << '\n';
+				if (ec) {
+					SPDLOG_ERROR("Error checking directory: {} ({})", (*zip_files_directory).string(), ec.message());
+				} else {
+					SPDLOG_ERROR("Error checking directory: {}", (*zip_files_directory).string());
+				}
 				finished = true;
 				break;
 			}
@@ -132,11 +134,11 @@ void GUploadZipFilesListener::onTransferFinish(mega::MegaApi *, mega::MegaTransf
 	std::error_code ec;
 	bool removed = std::filesystem::remove(mtransf->getPath(), ec);
 	if (ec) {
-		std::cerr << "Delete failed: " << ec.message() << '\n';
+		SPDLOG_ERROR("Delete failed: {}", ec.message());
 	} else if (removed) {
-		std::cerr << "File " << mtransf->getPath() << " deleted successfully\n";
+		SPDLOG_INFO("File {} deleted successfully", mtransf->getPath());
 	} else {
-		std::cerr << "Delete failed: file " << mtransf->getPath() << " not found\n";
+		SPDLOG_WARN("Delete failed: file {} not found", mtransf->getPath());
 	}
 	const std::lock_guard<std::mutex> lock(counter_mutex);
 	thread_counter--;

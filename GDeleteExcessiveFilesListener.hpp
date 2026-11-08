@@ -1,16 +1,7 @@
 #ifndef _GDELETEEXCESSIVEFILESLISTENER_H_
 #define _GDELETEEXCESSIVEFILESLISTENER_H_
-#include <chrono>
-#include <cstdio>
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
 #include <megaapi.h>
-#include <mutex>
 #include <string>
-#include <thread>
-#include <time.h>
-#include <filesystem>
 #include "GListener.hpp"
 #include <vector>
 #include <map>

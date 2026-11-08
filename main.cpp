@@ -29,7 +29,6 @@
 #include "getopt.h"
 #include <chrono>
 #include <cstdlib>
-#include <iostream>
 #include <megaapi.h>
 #include <string>
 #include <thread>
@@ -133,7 +132,7 @@ std::string randomStrGen(int length) {
 	return result;
 }
 
-int main_impl(int argc, char *argv[], char *sufixchar, bool logToStdout) {
+int main_impl(int argc, char *argv[], char *sufixchar, const bool logToStdout) {
 	SPDLOG_INFO("Gabriel's Mega Client");
 	SPDLOG_INFO("Compiled With: {}", COMPILED_WITH);
 	SPDLOG_INFO("Git: {} {}", GIT_REV, GIT_BRANCH);
@@ -357,8 +356,7 @@ int main(int argc, char *argv[]) {
 	char sufix[64]{};
 	int retval = main_impl(argc, argv, sufix, logToStdout);
 
-#if defined(_DEBUG) || defined(DEBUG)
-#else
+#if !defined(_DEBUG) && !defined(DEBUG)
 	logger->flush();
 	spdlog::drop("my_sink");
 	logger.reset();
