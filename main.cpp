@@ -67,6 +67,7 @@ bool fastloginfinshed{ false };
 #include <system_error>
 #include "GListener.hpp"
 #include <exception>
+#include "fmt/base.h"
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -121,23 +122,18 @@ int print_usage(const char *argv0, int retval) {
 		argv0);
 	return retval;
 }
-}; // namespace
 
-int main(int argc, char *argv[]) {
-#if defined(_DEBUG) || defined(DEBUG)
-	auto the_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-	the_sink->set_pattern("[%H:%M:%S.%e] [%^%-8l%$] %v [%s:%#]");
-	const bool logToStdout = true;
-#else
-	auto the_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("GMegaUpload.log", true);
-	the_sink->set_pattern("[%H:%M:%S.%e] [%-8l] %v [%s:%#]");
-	const bool logToStdout = false;
-#endif
-	the_sink->set_level(spdlog::level::trace);
-	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("my_sink", the_sink);
-	spdlog::set_default_logger(logger);
-	spdlog::set_level(spdlog::level::trace);
+std::string randomStrGen(int length) {
+	static std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+	std::string result;
+	result.resize(length);
 
+	for (int i = 0; i < length; i++) result[i] = charset[rand() % charset.length()];
+
+	return result;
+}
+
+int main_impl(int argc, char *argv[], char *sufixchar, bool logToStdout) {
 	SPDLOG_INFO("Gabriel's Mega Client");
 	SPDLOG_INFO("Compiled With: {}", COMPILED_WITH);
 	SPDLOG_INFO("Git: {} {}", GIT_REV, GIT_BRANCH);
@@ -203,6 +199,7 @@ int main(int argc, char *argv[]) {
 		SPDLOG_ERROR("Error: --sufix is required");
 		return print_usage(argv[0], 1);
 	}
+	strcpy_s(sufixchar, 64, sufix.c_str());
 	if (action == "uploadbackup" && directory.empty()) {
 		SPDLOG_ERROR("Error: --directory (root path that contains the files) is required");
 		return print_usage(argv[0], 1);
@@ -333,5 +330,45 @@ int main(int argc, char *argv[]) {
 	flock(fd, LOCK_UN);
 	close(fd);
 #endif
+
 	return 0;
+}
+}; // namespace
+
+int main(int argc, char *argv[]) {
+	srand(static_cast<unsigned int>(time(NULL)));
+	char timestamp[18];
+	getTimestampForFile(timestamp);
+	const std::string temp_log_file = fmt::format("_{}_{}.log", timestamp, randomStrGen(16));
+#if defined(_DEBUG) || defined(DEBUG)
+	auto the_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	the_sink->set_pattern("[%H:%M:%S.%e] [%^%-8l%$] %v [%s:%#]");
+	const bool logToStdout = true;
+#else
+	auto the_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(temp_log_file, true);
+	the_sink->set_pattern("[%H:%M:%S.%e] [%-8l] %v [%s:%#]");
+	const bool logToStdout = false;
+#endif
+	the_sink->set_level(spdlog::level::trace);
+	std::shared_ptr<spdlog::logger> logger = std::make_shared<spdlog::logger>("my_sink", the_sink);
+	spdlog::set_default_logger(logger);
+	spdlog::set_level(spdlog::level::trace);
+
+	char sufix[64]{};
+	int retval = main_impl(argc, argv, sufix, logToStdout);
+
+#if defined(_DEBUG) || defined(DEBUG)
+#else
+	logger->flush();
+	spdlog::drop("my_sink");
+	logger.reset();
+	the_sink.reset();
+	std::error_code ec;
+	std::filesystem::rename(temp_log_file, sufix + temp_log_file, ec);
+	if (ec) {
+		fmt::println(stderr, "Failed to rename log file {} to {}: {}", temp_log_file, sufix + temp_log_file,
+					 ec.message());
+	}
+#endif
+	return retval;
 }
