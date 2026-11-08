@@ -198,7 +198,7 @@ int main_impl(int argc, char *argv[], char *sufixchar, const bool logToStdout) {
 		SPDLOG_ERROR("Error: --sufix is required");
 		return print_usage(argv[0], 1);
 	}
-	strcpy_s(sufixchar, 64, sufix.c_str());
+	std::strcpy(sufixchar, sufix.c_str());
 	if (action == "uploadbackup" && directory.empty()) {
 		SPDLOG_ERROR("Error: --directory (root path that contains the files) is required");
 		return print_usage(argv[0], 1);
