@@ -18,6 +18,7 @@
  * You should have received a copy of the license along with this
  * program.
  */
+#define _CRT_SECURE_NO_WARNINGS
 #ifdef _WIN32
 #include <Windows.h>
 #else
