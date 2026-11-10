@@ -33,9 +33,7 @@
 				"--splitsizemegabytes",
 				"3",
 				"--sufix",
-				"FOTOS_GABRIEL",
-				"--log_file",
-				"my_mega_logfile.log"
+				"FOTOS_GABRIEL"
 			]
 		},
 		{

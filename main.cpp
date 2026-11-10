@@ -66,6 +66,7 @@ bool fastloginfinshed{ false };
 #include <exception>
 #include <ctime>
 #include <vector>
+#include <system_error>
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -115,7 +116,6 @@ int print_usage(const char *argv0, int retval) {
 		"--remote_folder list of folders in path MEGA sqlitebackup "
 		"--files file001.xlsx file002.png file003.txt file004.db "
 		"--sufix SUFIX_THAT_GOES_BEFORE_THE_DATE_ON_THE_7zip_FILE "
-		"--log_file my_mega_logfile.log "
 		"--splitsizemegabytes 64",
 		argv0);
 	return retval;
@@ -138,22 +138,18 @@ int main_impl(int argc, char *argv[], char *sufixchar, std::shared_ptr<spdlog::l
 	SPDLOG_INFO("Git: {} {}", GIT_REV, GIT_BRANCH);
 	SPDLOG_INFO("Build date: {}", build_date);
 
-	constexpr option ceasa_testing_options[] = { { "action", required_argument, nullptr, 'a' },
-												 { "files", required_argument, nullptr, 'f' },
-												 { "directory", required_argument, nullptr, 'd' },
-												 { "sufix", required_argument, nullptr, 's' },
-												 { "remote_folder", required_argument, nullptr, 'r' },
-												 { "log_file", required_argument, nullptr, 'l' },
-												 { "splitsizemegabytes", required_argument, nullptr, 'm' },
-												 { "help", optional_argument, nullptr, 'h' },
-												 { nullptr, 0 } };
+	constexpr option ceasa_testing_options[] = {
+		{ "action", required_argument, nullptr, 'a' },		  { "files", required_argument, nullptr, 'f' },
+		{ "directory", required_argument, nullptr, 'd' },	  { "sufix", required_argument, nullptr, 's' },
+		{ "remote_folder", required_argument, nullptr, 'r' }, { "splitsizemegabytes", required_argument, nullptr, 'm' },
+		{ "help", optional_argument, nullptr, 'h' },		  { nullptr, 0 }
+	};
 	int opt{};
 	int longindex{};
 	std::string action;
 	std::string directory;
 	std::string sufix;
 	std::vector<std::string> remote_folder;
-	std::string log_file;
 	size_t split_size_megabytes{ 0 };
 	std::vector<std::string> files;
 	while ((opt = getopt_long(argc, argv, "f:d:s:r:m:h", ceasa_testing_options, &longindex)) != -1) {
@@ -168,7 +164,6 @@ int main_impl(int argc, char *argv[], char *sufixchar, std::shared_ptr<spdlog::l
 				}
 			} break;
 			case 's': sufix = std::string(optarg); break;
-			case 'l': log_file = std::string(optarg); break;
 			case 'r': {
 				remote_folder.emplace_back(optarg);
 				while (optind < argc && argv[optind][0] != '-') {
@@ -229,8 +224,6 @@ int main_impl(int argc, char *argv[], char *sufixchar, std::shared_ptr<spdlog::l
 	}
 
 	// Route SDK logs to a file. Override the path with MEGA_LOG_FILE.
-
-	const std::string logFilePath = log_file.empty() ? "" : log_file;
 
 	const char *envEmail = conf.get_mega_email();
 	const char *envPassword = conf.get_mega_pwd();
@@ -362,6 +355,7 @@ int main(int argc, char *argv[]) {
 	logger.reset();
 	the_sink.reset();
 	std::error_code ec;
+	if (std::strlen(sufix) == 0) std::strcpy(sufix, "GMEGAUPLOAD");
 	std::filesystem::rename(temp_log_file, sufix + temp_log_file, ec);
 	if (ec) {
 		fmt::println(stderr, "Failed to rename log file {} to {}: {}", temp_log_file, sufix + temp_log_file,

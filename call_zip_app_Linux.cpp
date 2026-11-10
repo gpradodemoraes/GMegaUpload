@@ -41,7 +41,7 @@ std::pair<int, std::unique_ptr<std::string>> call_zip_app(const std::string *zip
 
 	std::vector<char *> myargs;
 	for (auto &s : params) {
-		SPDLOG_INFO("FMT: {}", s);
+		SPDLOG_INFO("arg: {}", s);
 		myargs.push_back(s.data());
 	}
 	myargs.push_back(nullptr);
