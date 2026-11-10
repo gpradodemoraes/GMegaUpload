@@ -33,10 +33,8 @@
 #include <megaapi.h>
 #include <string>
 #include <thread>
-#include <string>
-#include <vector>
 #include "config.hpp"
-#include "SimpleClientLogger.hpp"
+#include "SpdlogMegaLogger.hpp"
 #include "GUploadZipFilesListener.hpp"
 #include "GDeleteExcessiveFilesListener.hpp"
 #include <spdlog/spdlog.h>
@@ -64,10 +62,10 @@ std::condition_variable fastlogin_cv;
 std::mutex fastlogin_mtx;
 bool fastloginfinshed{ false };
 #include "FastLoginListener.hpp"
-#include <system_error>
 #include "GListener.hpp"
 #include <exception>
-#include "fmt/base.h"
+#include <ctime>
+#include <vector>
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -133,7 +131,8 @@ std::string randomStrGen(int length) {
 	return result;
 }
 
-int main_impl(int argc, char *argv[], char *sufixchar, const bool logToStdout) {
+int main_impl(int argc, char *argv[], char *sufixchar, std::shared_ptr<spdlog::logger> logger,
+			  [[maybe_unused]] const bool logToStdout) {
 	SPDLOG_INFO("Gabriel's Mega Client");
 	SPDLOG_INFO("Compiled With: {}", COMPILED_WITH);
 	SPDLOG_INFO("Git: {} {}", GIT_REV, GIT_BRANCH);
@@ -195,7 +194,7 @@ int main_impl(int argc, char *argv[], char *sufixchar, const bool logToStdout) {
 		SPDLOG_ERROR("Error: --remote_folder is required");
 		return print_usage(argv[0], 1);
 	}
-	if (action == "uploadbackup" && sufix.empty()) {
+	if (sufix.empty()) {
 		SPDLOG_ERROR("Error: --sufix is required");
 		return print_usage(argv[0], 1);
 	}
@@ -247,8 +246,8 @@ int main_impl(int argc, char *argv[], char *sufixchar, const bool logToStdout) {
 	flock(fd, LOCK_EX);
 #endif
 	/* Começando o processamento do MEGA API */
-	static SimpleClientLogger fileLogger(logFilePath, logToStdout);
-	mega::MegaApi::addLoggerObject(&fileLogger, /*singleExclusiveLogger=*/true);
+	auto megaLogger = std::make_shared<SpdlogMegaLogger>(spdlog::default_logger());
+	mega::MegaApi::addLoggerObject(megaLogger.get(), /*singleExclusiveLogger=*/true);
 	mega::MegaApi::setLogLevel(mega::MegaApi::LOG_LEVEL_INFO);
 
 	// fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_INFO, __FUNCTION__,
@@ -268,8 +267,8 @@ int main_impl(int argc, char *argv[], char *sufixchar, const bool logToStdout) {
 			call_zip_app(&sevenzip_path, &directory, &new_sufix, &files, split_size_megabytes);
 
 		if (zip_result.first != 0) {
-			fileLogger.log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,
-						   fmt::format("Failed to create zip file temp directory: {}", *zip_result.second).c_str());
+			megaLogger->log(nullptr, mega::MegaApi::LOG_LEVEL_ERROR, __FUNCTION__,
+							fmt::format("Failed to create zip file temp directory: {}", *zip_result.second).c_str());
 			return 1;
 		}
 		std::unique_ptr<std::filesystem::path> mypath = std::make_unique<std::filesystem::path>(*zip_result.second);
@@ -321,7 +320,7 @@ int main_impl(int argc, char *argv[], char *sufixchar, const bool logToStdout) {
 	megaApi->removeListener(listener);
 	delete megaApi;
 	delete listener;
-	mega::MegaApi::removeLoggerObject(&fileLogger);
+	mega::MegaApi::removeLoggerObject(megaLogger.get());
 	delete sessionKey;
 #ifdef _WIN32
 	ReleaseMutex(h);
@@ -355,7 +354,7 @@ int main(int argc, char *argv[]) {
 	spdlog::set_level(spdlog::level::trace);
 
 	char sufix[64]{};
-	int retval = main_impl(argc, argv, sufix, logToStdout);
+	int retval = main_impl(argc, argv, sufix, logger, logToStdout);
 
 #if !defined(_DEBUG) && !defined(DEBUG)
 	logger->flush();
