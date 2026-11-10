@@ -13,6 +13,9 @@ git submodule init
 
 git submodule update
 
+git submodule update --init --recursive .\third_party\mega-sdk\
+git submodule update --init --recursive ./third_party/mega-sdk
+
 ## INSTALAR NO LINUX ##
 para gerar a build em Linux e instalar:
 cmake --preset RLS_Linux

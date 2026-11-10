@@ -328,10 +328,15 @@ int main_impl(int argc, char *argv[], char *sufixchar, std::shared_ptr<spdlog::l
 }; // namespace
 
 int main(int argc, char *argv[]) {
-	srand(static_cast<unsigned int>(time(NULL)));
+#ifdef _WIN32
+	unsigned int pid = static_cast<unsigned int>(GetCurrentProcessId());
+#else
+	unsigned int pid = static_cast<unsigned int>(getpid());
+#endif
+	srand(pid + static_cast<unsigned int>(time(NULL)));
 	char timestamp[18];
 	getTimestampForFile(timestamp);
-	const std::string temp_log_file = fmt::format("_{}_{}.log", timestamp, randomStrGen(16));
+	const std::string temp_log_file = fmt::format("_{}_{}_{}.log", timestamp, randomStrGen(16), pid);
 #if defined(_DEBUG) || defined(DEBUG)
 	auto the_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	the_sink->set_pattern("[%H:%M:%S.%e] [%^%-8l%$] %v [%s:%#]");
