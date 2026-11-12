@@ -44,7 +44,7 @@
 			"externalConsole": true,
 			"args": [
 				"--action",
-				"purgebackups",
+				"uploadbackup",
 				"--directory",
 				"/tmp/testando",
 				"--remote_folder",
@@ -67,9 +67,7 @@
 				"--splitsizemegabytes",
 				"2",
 				"--sufix",
-				"FOTOS_GABRIEL",
-				"--log_file",
-				"my_mega_logfile.log"
+				"FOTOS_GABRIEL"
 			]
 		}
 	]

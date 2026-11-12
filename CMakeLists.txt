@@ -85,6 +85,8 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 		BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/build_timestamp.cpp)
 
 	add_dependencies(gmegaupload file_toucher)
+else()
+	target_compile_definitions(gmegaupload PRIVATE $<$<CONFIG:Debug>:DEBUG>)
 endif()
 
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
