@@ -48,5 +48,12 @@ index d3e7d3548..5fc27c075 100644
  endif()
 
  include(detect_host_architecture)
+ 
+ BASTAR USAR OS SEGUINTES COMANDOS:
+ 
+cd third_party/mega-sdk
+git apply ..\..\third_party-mega-sdk.patch
+cd ..\..
+
 
 
