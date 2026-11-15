@@ -106,7 +106,7 @@ install(DIRECTORY "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/l
 
 ############################
 # Copy to source directory
-if($<BOOL:true>)
+if(CMAKE_GENERATOR MATCHES "Ninja|Makefiles")
 	add_custom_target(
 		copy-compile-commands ALL
 		DEPENDS
