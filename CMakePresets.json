@@ -16,7 +16,8 @@
         {
             "name": "DBG_gmegaupload",
             "displayName": "Debug gmegaupload",
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
+			"toolset": "v142",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
