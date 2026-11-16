@@ -26,6 +26,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #endif
+#include "FastLoginListener.hpp"
+#include "GListener.hpp"
 #include <mega/log_level.h>
 #include "getopt.h"
 #include <chrono>
@@ -41,6 +43,7 @@
 #if defined(_DEBUG) || defined(DEBUG)
 #include <spdlog/sinks/stdout_color_sinks.h>
 #else
+#include <system_error>
 #include <spdlog/sinks/basic_file_sink.h>
 #endif
 #include <spdlog/logger.h>
@@ -56,17 +59,13 @@
 #include <condition_variable>
 #include <mutex>
 #include "nlohmann/detail/exceptions.hpp"
-#include <istream>
-extern const char *build_date;
+extern const char *const build_date;
 std::condition_variable fastlogin_cv;
 std::mutex fastlogin_mtx;
 bool fastloginfinshed{ false };
-#include "FastLoginListener.hpp"
-#include "GListener.hpp"
 #include <exception>
 #include <ctime>
 #include <vector>
-#include <system_error>
 
 // Credentials are read from the MEGA_EMAIL and MEGA_PWD environment variables.
 // Get your APP_KEY for free at https://mega.io/developers#source-code
@@ -131,7 +130,7 @@ std::string randomStrGen(int length) {
 	return result;
 }
 
-int main_impl(int argc, char *argv[], char *sufixchar, std::shared_ptr<spdlog::logger> logger,
+int main_impl(int argc, char *argv[], char *sufixchar, [[maybe_unused]] std::shared_ptr<spdlog::logger> logger,
 			  [[maybe_unused]] const bool logToStdout) {
 	SPDLOG_INFO("Gabriel's Mega Client");
 	SPDLOG_INFO("Compiled With: {}", COMPILED_WITH);
@@ -142,7 +141,7 @@ int main_impl(int argc, char *argv[], char *sufixchar, std::shared_ptr<spdlog::l
 		{ "action", required_argument, nullptr, 'a' },		  { "files", required_argument, nullptr, 'f' },
 		{ "directory", required_argument, nullptr, 'd' },	  { "sufix", required_argument, nullptr, 's' },
 		{ "remote_folder", required_argument, nullptr, 'r' }, { "splitsizemegabytes", required_argument, nullptr, 'm' },
-		{ "help", optional_argument, nullptr, 'h' },		  { nullptr, 0 }
+		{ "help", optional_argument, nullptr, 'h' },		  { nullptr, 0, nullptr, 0 }
 	};
 	int opt{};
 	int longindex{};

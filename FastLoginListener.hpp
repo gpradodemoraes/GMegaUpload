@@ -1,5 +1,10 @@
 #include "megaapi.h"
 #include <mutex>
+#include <spdlog/spdlog.h>
+
+extern std::condition_variable fastlogin_cv;
+extern std::mutex fastlogin_mtx;
+extern bool fastloginfinshed;
 
 class FastLoginListener : public mega::MegaRequestListener {
    public:

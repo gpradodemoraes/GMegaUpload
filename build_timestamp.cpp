@@ -1,1 +1,1 @@
-const char *build_date = __DATE__ " " __TIME__;
+extern const char *const build_date = __DATE__ " " __TIME__;
